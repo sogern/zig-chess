@@ -1,0 +1,11 @@
+.{
+    .fingerprint = 0x5cebff35c20bb602,
+    .name = .zig_chess,
+    .version = "0.1.0",
+    .dependencies = .{},
+    .paths = .{
+        "build.zig",
+        "build.zig.zon",
+        "src",
+    },
+}
