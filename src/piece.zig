@@ -79,7 +79,15 @@ pub const Colour = enum(u8) {
     Black,
     None,
 
-    pub fn toString(self: @This()) u8 {
+    pub fn fromChar(c: u8) Colour {
+        switch (c) {
+            'w' => return Colour.White,
+            'b' => return Colour.Black,
+            else => return Colour.None,
+        }
+    }
+
+    pub fn toChar(self: @This()) u8 {
         return colours[@intFromEnum(self)];
     }
 };
@@ -167,6 +175,6 @@ test "string representation of colours" {
     };
 
     for (testCases) |tc| {
-        try std.testing.expectEqual(tc.e, tc.c.toString());
+        try std.testing.expectEqual(tc.e, tc.c.toChar());
     }
 }

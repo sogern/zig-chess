@@ -1,14 +1,24 @@
 const std = @import("std");
 const Board = @import("board.zig").Board;
+const Colour = @import("piece.zig").Colour;
+const CastlingRights = @import("castling.zig").CastlingRights;
 
 pub const Position = struct {
     board: *Board,
+    castling: CastlingRights,
+    halfMoveCount: i32,
+    moveCount: i32,
+    turn: Colour,
     alloc: std.mem.Allocator,
 
     pub fn create(alloc: std.mem.Allocator) !*Position {
         const position = try alloc.create(Position);
         position.* = Position{
             .board = try Board.create(alloc),
+            .castling = CastlingRights.init(),
+            .halfMoveCount = 0,
+            .moveCount = 0,
+            .turn = Colour.White,
             .alloc = alloc,
         };
         return position;
@@ -20,7 +30,7 @@ pub const Position = struct {
     }
 };
 
-test "Position creation and deinitialization" {
+test "Position initialization" {
     const alloc = std.testing.allocator;
     const position = try Position.create(alloc);
     defer {
