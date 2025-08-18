@@ -11,6 +11,13 @@ pub const Square = struct {
     /// Square bitboard index 0-63, or NoSquare if invalid
     s: i8,
 
+    pub fn fromIndex(index: i8) Square {
+        if (index < 0 or index >= numSquaresOnBoard) return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+        const rank = 7 - @mod(index, numSquaresInRow);
+        const file = 7 - @divTrunc(index, numSquaresInRow);
+        return .{ .s = index, .r = @intCast(rank), .f = @intCast(file) };
+    }
+
     pub fn fromFileAndRank(file: i8, rank: i8) Square {
         if (file < 0 or file > 7 or rank < 0 or rank > 7) return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
         const out = 63 - ((file * numSquaresInRow) + rank);
@@ -29,6 +36,10 @@ pub const Square = struct {
     pub fn toString(self: Square) []const u8 {
         if (self.s == NoSquare) return "";
         return squareStrings[63 - @as(usize, @intCast(self.s))];
+    }
+
+    pub fn equals(self: Square, other: Square) bool {
+        return self.s == other.s and self.f == other.f and self.r == other.r;
     }
 
     pub const A1 = 63;
@@ -116,6 +127,8 @@ pub const Square = struct {
     pub const Rank7 = 6;
     pub const Rank8 = 7;
     pub const NoRank: i8 = -1;
+
+    pub const None: Square = .{ .s = NoSquare, .f = NoFile, .r = NoRank };
 };
 
 const squareStrings = [_]*const [2]u8{
@@ -238,6 +251,31 @@ test "Square fromFileAndRank" {
 
     for (testCases) |tc| {
         const s = Square.fromFileAndRank(tc.f, tc.r);
+        try std.testing.expectEqual(tc.exp, s.s);
+    }
+}
+
+test "Square fromIndex" {
+    const testCase = struct {
+        index: i8,
+        exp: i8,
+    };
+    const testCases: []const testCase = &[_]testCase{
+        .{ .index = 63, .exp = Square.A1 },
+        .{ .index = 55, .exp = Square.B1 },
+        .{ .index = 31, .exp = Square.E1 },
+        .{ .index = 28, .exp = Square.E4 },
+        .{ .index = 7, .exp = Square.H1 },
+        .{ .index = 62, .exp = Square.A2 },
+        .{ .index = 0, .exp = Square.H8 },
+        // Invalid cases
+        .{ .index = -1, .exp = Square.NoSquare },
+        .{ .index = 64, .exp = Square.NoSquare },
+    };
+
+    for (testCases) |tc| {
+        const s = Square.fromIndex(tc.index);
+        std.debug.print("Rank and File: {d} {d}\n", .{s.r, s.f});
         try std.testing.expectEqual(tc.exp, s.s);
     }
 }

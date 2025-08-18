@@ -2,6 +2,7 @@ const std = @import("std");
 const Board = @import("board.zig").Board;
 const Colour = @import("piece.zig").Colour;
 const CastlingRights = @import("castling.zig").CastlingRights;
+const Square = @import("square.zig").Square;
 
 pub const Position = struct {
     board: *Board,
@@ -9,6 +10,8 @@ pub const Position = struct {
     halfMoveCount: i32,
     moveCount: i32,
     turn: Colour,
+    enPassantSquare: Square,
+    inCheck: bool,
     alloc: std.mem.Allocator,
 
     pub fn create(alloc: std.mem.Allocator) !*Position {
@@ -19,6 +22,8 @@ pub const Position = struct {
             .halfMoveCount = 0,
             .moveCount = 0,
             .turn = Colour.White,
+            .enPassantSquare = Square.None,
+            .inCheck = false,
             .alloc = alloc,
         };
         return position;

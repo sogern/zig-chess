@@ -1,6 +1,7 @@
 const std = @import("std");
 const bitboard = @import("bitboard.zig").bitboard;
 const Piece = @import("piece.zig").Piece;
+const Colour = @import("piece.zig").Colour;
 const PieceError = @import("piece.zig").PieceError;
 const Square = @import("square.zig").Square;
 
@@ -163,6 +164,19 @@ pub const Board = packed struct {
         clearBitboardBit(&self.emptySquares, square.s);
     }
 
+    pub fn getKingSquare(self: *Board, colour: Colour) Square {
+        if (colour == Colour.None) return Square.None;
+        if (colour == Colour.White) {
+            if (self.whiteKing == 0) return Square.None;
+            const index = @as(i8, @ctz(self.whiteKing));
+            return Square.fromIndex(index);
+        } else {
+            if (self.blackKing == 0) return Square.None;
+            const index = @as(i8, @ctz(self.blackKing));
+            return Square.fromIndex(index);
+        }
+    }
+
     /// Returns a string representation of the board for debugging purposes.
     pub fn toDebugString(self: *Board) []const u8 {
         const alloc = std.heap.page_allocator;
@@ -233,6 +247,28 @@ test "Board creation and piece placement" {
     const expectedEmptyQuares: bitboard = 0xFFFFFFFFFFFFFFFF & ~expectedBB;
     // std.debug.print("Empty squares bitboard: {b}, expected bitboard: {b}\n", .{board.emptySquares, expectedEmptyQuares});
     try std.testing.expect(board.emptySquares == expectedEmptyQuares);
+}
+
+test "Board getKingSquare" {
+    std.debug.print("Testing Board getKingSquare...\n", .{});
+    const alloc = std.testing.allocator;
+    const board = try Board.create(alloc);
+    defer {
+        board.deinit();
+        alloc.destroy(board);
+    }
+
+    // Place a white king on e1
+    const e1 = Square.fromFileAndRank(4, 0);
+    try board.placePiece(Piece.WhiteKing, e1);
+    const whiteKingSquare = board.getKingSquare(Colour.White);
+    try std.testing.expect(whiteKingSquare.equals(e1));
+
+    // Place a black king on e8
+    const e8 = Square.fromFileAndRank(4, 7);
+    try board.placePiece(Piece.BlackKing, e8);
+    const blackKingSquare = board.getKingSquare(Colour.Black);
+    try std.testing.expect(blackKingSquare.equals(e8));
 }
 
 test "Board toDebugString" {
