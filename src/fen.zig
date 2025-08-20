@@ -14,6 +14,7 @@ pub const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 pub const FENError = error{
     InvalidFEN,
     InvalidBoard,
+    InvalidCastlingRightsForGivenBoard,
 };
 
 pub fn decodeFEN(fen: []const u8) !Position {
@@ -38,7 +39,7 @@ pub fn decodeFEN(fen: []const u8) !Position {
                 }
             },
             2 => |_| {
-                try fenCastlingRights(&position.board, &position.castling, p);
+                try fenCastlingRights(position.board, &position.castling, p);
             },
             3 => |_| {},
             4 => |_| {},
@@ -98,16 +99,13 @@ pub fn fenBoard(board: *Board, boardStr: []const u8) !void {
     }
 }
 
-pub fn fenCastlingRights(_: *Board, castling: *CastlingRights, castlingStr: []const u8) !void {
+pub fn fenCastlingRights(board: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
     if (castlingStr.len == 0 or castlingStr[0] == '-') {
         castling.* = CastlingRights{};
         return;
     }
 
     for (castlingStr) |c| {
-        if (c != 'K' and c != 'k' and c != 'Q' and c != 'q' and ((c < 'A' or c > 'H') and (c < 'a' or c > 'h'))) {
-            return FENError.InvalidFEN;
-        }
         switch (c) {
             'K' => try castling.updateCastlingRights(Colour.White, CastlingSide.Kingside, 4, 7),
             'k' => try castling.updateCastlingRights(Colour.Black, CastlingSide.Kingside, 4, 7),
@@ -115,14 +113,33 @@ pub fn fenCastlingRights(_: *Board, castling: *CastlingRights, castlingStr: []co
             'q' => try castling.updateCastlingRights(Colour.Black, CastlingSide.Queenside, 4, 0),
             else => {
                 // Chess960 castling FEN
-                // var kf: i8 = 0;
-                // if (c >= 'A' and c <= 'H') {
-                //     const colour = Colour.White;
-                // } else if (c >= 'a' and c <= 'h') {
-                //     kf = @intCast(c - 'a');
-                // } else {
-                //     return FENError.InvalidFEN;
-                // }
+                if (c >= 'A' and c <= 'H') {
+                    const colour = Colour.White;
+                    const ks = board.getKingSquare(colour);
+                    if (ks.equals(Square.None)) {
+                        return FENError.InvalidCastlingRightsForGivenBoard;
+                    }
+                    const rf = @as(i8, @intCast(c - 'A'));
+                    if (rf < ks.f) {
+                        try castling.updateCastlingRights(colour, CastlingSide.Queenside, ks.f, rf);
+                    } else {
+                        try castling.updateCastlingRights(colour, CastlingSide.Kingside, ks.f, rf);
+                    }
+                } else if (c >= 'a' and c <= 'h') {
+                    const colour = Colour.Black;
+                    const ks = board.getKingSquare(colour);
+                    if (ks.equals(Square.None)) {
+                        return FENError.InvalidCastlingRightsForGivenBoard;
+                    }
+                    const rf = @as(i8, @intCast(c - 'a'));
+                    if (rf < ks.f) {
+                        try castling.updateCastlingRights(colour, CastlingSide.Queenside, ks.f, rf);
+                    } else {
+                        try castling.updateCastlingRights(colour, CastlingSide.Kingside, ks.f, rf);
+                    }
+                } else {
+                    return FENError.InvalidFEN;
+                }
             },
         }
     }

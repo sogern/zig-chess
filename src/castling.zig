@@ -100,3 +100,20 @@ test "Castling rights" {
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000110000001);
 }
+
+test "Chess960 castling rights" {
+    std.debug.print("Testing Chess960 castling rights...\n", .{});
+    var castling = CastlingRights{};
+
+    // Update white castling rights (king on F, rooks on B and G)
+    try castling.updateCastlingRights(Colour.White, CastlingSide.Kingside, 5, 6);
+    try castling.updateCastlingRights(Colour.White, CastlingSide.Queenside, 5, 1);
+    try std.testing.expect(castling.k == 0b0000010000000000);
+    try std.testing.expect(castling.r == 0b0100001000000000);
+
+    // Update black castling rights (king on F, rooks on B and G)
+    try castling.updateCastlingRights(Colour.Black, CastlingSide.Kingside, 5, 6);
+    try castling.updateCastlingRights(Colour.Black, CastlingSide.Queenside, 5, 1);
+    try std.testing.expect(castling.k == 0b0000010000000100);
+    try std.testing.expect(castling.r == 0b0100001001000010);
+}
