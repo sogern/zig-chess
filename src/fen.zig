@@ -16,17 +16,17 @@ pub const FENError = error{
     InvalidBoard,
 };
 
-pub fn decodeFEN(alloc: std.mem.Allocator, fen: []const u8) !*Position {
+pub fn decodeFEN(fen: []const u8) !Position {
     // Split the FEN string into parts
     var it = std.mem.splitScalar(u8, fen, ' ');
 
-    const position = try Position.create(alloc);
+    var position = Position{};
 
     var partsCount: usize = 0;
     while (it.next()) |p| {
         switch (partsCount) {
             0 => |_| {
-                try fenBoard(alloc, position.board, p);
+                try fenBoard(&position.board, p);
             },
             1 => |_| {
                 if (p.len != 1) {
@@ -38,7 +38,7 @@ pub fn decodeFEN(alloc: std.mem.Allocator, fen: []const u8) !*Position {
                 }
             },
             2 => |_| {
-                try fenCastlingRights(alloc, position.board, &position.castling, p);
+                try fenCastlingRights(&position.board, &position.castling, p);
             },
             3 => |_| {},
             4 => |_| {},
@@ -51,8 +51,8 @@ pub fn decodeFEN(alloc: std.mem.Allocator, fen: []const u8) !*Position {
     return position;
 }
 
-pub fn fenBoard(_: std.mem.Allocator, board: *Board, boardStr: []const u8) !void {
-    std.debug.print("boardStr={s}\n", .{boardStr});
+pub fn fenBoard(board: *Board, boardStr: []const u8) !void {
+    // std.debug.print("boardStr={s}\n", .{boardStr});
     var rankCount: usize = 0;
     var start: usize = 0;
     var rankBuffer: [8][]const u8 = undefined;
@@ -98,14 +98,14 @@ pub fn fenBoard(_: std.mem.Allocator, board: *Board, boardStr: []const u8) !void
     }
 }
 
-pub fn fenCastlingRights(_: std.mem.Allocator, _: *Board, castling: *CastlingRights, castlingStr: []const u8) !void {
+pub fn fenCastlingRights(_: *Board, castling: *CastlingRights, castlingStr: []const u8) !void {
     if (castlingStr.len == 0 or castlingStr[0] == '-') {
-        castling.* = CastlingRights.init();
+        castling.* = CastlingRights{};
         return;
     }
 
     for (castlingStr) |c| {
-        if (c != 'K' or c != 'k' or c != 'Q' or c != 'q' or ((c < 'A' or c > 'H') and (c < 'a' or c > 'h'))) {
+        if (c != 'K' and c != 'k' and c != 'Q' and c != 'q' and ((c < 'A' or c > 'H') and (c < 'a' or c > 'h'))) {
             return FENError.InvalidFEN;
         }
         switch (c) {
@@ -130,50 +130,54 @@ pub fn fenCastlingRights(_: std.mem.Allocator, _: *Board, castling: *CastlingRig
 
 test "decodeFEN valid FEN" {
     std.debug.print("Decoding valid FEN...\n", .{});
-    const alloc = std.testing.allocator;
-    const position = try decodeFEN(alloc, startFEN);
-    defer {
-        position.deinit();
-        alloc.destroy(position);
-    }
+    const position = try decodeFEN(startFEN);
 
-    // Check if the board is initialized correctly
-    std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.toDebugString()});
-    try std.testing.expect(position.board.whiteRooks == (@as(u64, 1) << Square.A1) + (@as(u64, 1) << Square.H1));
-    try std.testing.expect(position.board.whiteKnights == (@as(u64, 1) << Square.B1) + (@as(u64, 1) << Square.G1));
-    try std.testing.expect(position.board.whiteBishops == (@as(u64, 1) << Square.C1) + (@as(u64, 1) << Square.F1));
-    try std.testing.expect(position.board.whiteQueen == (@as(u64, 1) << Square.D1));
-    try std.testing.expect(position.board.whiteKing == (@as(u64, 1) << Square.E1));
-    try std.testing.expect(position.board.whitePawns ==
-        (@as(u64, 1) << Square.A2) + (@as(u64, 1) << Square.B2) +
-            (@as(u64, 1) << Square.C2) + (@as(u64, 1) << Square.D2) +
-            (@as(u64, 1) << Square.E2) + (@as(u64, 1) << Square.F2) +
-            (@as(u64, 1) << Square.G2) + (@as(u64, 1) << Square.H2));
-    try std.testing.expect(position.board.blackRooks == (@as(u64, 1) << Square.A8) + (@as(u64, 1) << Square.H8));
-    try std.testing.expect(position.board.blackKnights == (@as(u64, 1) << Square.B8) + (@as(u64, 1) << Square.G8));
-    try std.testing.expect(position.board.blackBishops == (@as(u64, 1) << Square.C8) + (@as(u64, 1) << Square.F8));
-    try std.testing.expect(position.board.blackQueen == (@as(u64, 1) << Square.D8));
-    try std.testing.expect(position.board.blackKing == (@as(u64, 1) << Square.E8));
-    try std.testing.expect(position.board.blackPawns ==
-        (@as(u64, 1) << Square.A7) + (@as(u64, 1) << Square.B7) +
-            (@as(u64, 1) << Square.C7) + (@as(u64, 1) << Square.D7) +
-            (@as(u64, 1) << Square.E7) + (@as(u64, 1) << Square.F7) +
-            (@as(u64, 1) << Square.G7) + (@as(u64, 1) << Square.H7));
-    try std.testing.expect(position.board.emptySquares ==
-        (@as(u64, 1) << Square.A3) + (@as(u64, 1) << Square.A4) +
-            (@as(u64, 1) << Square.A5) + (@as(u64, 1) << Square.A6) +
-            (@as(u64, 1) << Square.B3) + (@as(u64, 1) << Square.B4) +
-            (@as(u64, 1) << Square.B5) + (@as(u64, 1) << Square.B6) +
-            (@as(u64, 1) << Square.C3) + (@as(u64, 1) << Square.C4) +
-            (@as(u64, 1) << Square.C5) + (@as(u64, 1) << Square.C6) +
-            (@as(u64, 1) << Square.D3) + (@as(u64, 1) << Square.D4) +
-            (@as(u64, 1) << Square.D5) + (@as(u64, 1) << Square.D6) +
-            (@as(u64, 1) << Square.E3) + (@as(u64, 1) << Square.E4) +
-            (@as(u64, 1) << Square.E5) + (@as(u64, 1) << Square.E6) +
-            (@as(u64, 1) << Square.F3) + (@as(u64, 1) << Square.F4) +
-            (@as(u64, 1) << Square.F5) + (@as(u64, 1) << Square.F6) +
-            (@as(u64, 1) << Square.G3) + (@as(u64, 1) << Square.G4) +
-            (@as(u64, 1) << Square.G5) + (@as(u64, 1) << Square.G6) +
-            (@as(u64, 1) << Square.H3) + (@as(u64, 1) << Square.H4) +
-            (@as(u64, 1) << Square.H5) + (@as(u64, 1) << Square.H6));
+    // std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.toDebugString()});
+    const expected = "  a b c d e f g h\n"
+        ++ "  ---------------\n"
+        ++ "8 r n b q k b n r\n"
+        ++ "7 p p p p p p p p\n"
+        ++ "6                \n"
+        ++ "5                \n"
+        ++ "4                \n"
+        ++ "3                \n"
+        ++ "2 P P P P P P P P\n"
+        ++ "1 R N B Q K B N R\n"
+        ++ "  ---------------\n";
+    try std.testing.expectEqualStrings(expected, position.board.toDebugString());
+
+    try std.testing.expectEqual((@as(u64, 1) << Square.A1) + (@as(u64, 1) << Square.H1), position.board.whiteRooks);
+    try std.testing.expectEqual((@as(u64, 1) << Square.B1) + (@as(u64, 1) << Square.G1), position.board.whiteKnights);
+    try std.testing.expectEqual((@as(u64, 1) << Square.C1) + (@as(u64, 1) << Square.F1), position.board.whiteBishops);
+    try std.testing.expectEqual((@as(u64, 1) << Square.D1), position.board.whiteQueen);
+    try std.testing.expectEqual((@as(u64, 1) << Square.E1), position.board.whiteKing);
+    try std.testing.expectEqual((@as(u64, 1) << Square.A2) + (@as(u64, 1) << Square.B2) +
+        (@as(u64, 1) << Square.C2) + (@as(u64, 1) << Square.D2) +
+        (@as(u64, 1) << Square.E2) + (@as(u64, 1) << Square.F2) +
+        (@as(u64, 1) << Square.G2) + (@as(u64, 1) << Square.H2), position.board.whitePawns);
+    try std.testing.expectEqual((@as(u64, 1) << Square.A8) + (@as(u64, 1) << Square.H8), position.board.blackRooks);
+    try std.testing.expectEqual((@as(u64, 1) << Square.B8) + (@as(u64, 1) << Square.G8), position.board.blackKnights);
+    try std.testing.expectEqual((@as(u64, 1) << Square.C8) + (@as(u64, 1) << Square.F8), position.board.blackBishops);
+    try std.testing.expectEqual((@as(u64, 1) << Square.D8), position.board.blackQueen);
+    try std.testing.expectEqual((@as(u64, 1) << Square.E8), position.board.blackKing);
+    try std.testing.expectEqual((@as(u64, 1) << Square.A7) + (@as(u64, 1) << Square.B7) +
+        (@as(u64, 1) << Square.C7) + (@as(u64, 1) << Square.D7) +
+        (@as(u64, 1) << Square.E7) + (@as(u64, 1) << Square.F7) +
+        (@as(u64, 1) << Square.G7) + (@as(u64, 1) << Square.H7), position.board.blackPawns);
+    try std.testing.expectEqual((@as(u64, 1) << Square.A3) + (@as(u64, 1) << Square.A4) +
+        (@as(u64, 1) << Square.A5) + (@as(u64, 1) << Square.A6) +
+        (@as(u64, 1) << Square.B3) + (@as(u64, 1) << Square.B4) +
+        (@as(u64, 1) << Square.B5) + (@as(u64, 1) << Square.B6) +
+        (@as(u64, 1) << Square.C3) + (@as(u64, 1) << Square.C4) +
+        (@as(u64, 1) << Square.C5) + (@as(u64, 1) << Square.C6) +
+        (@as(u64, 1) << Square.D3) + (@as(u64, 1) << Square.D4) +
+        (@as(u64, 1) << Square.D5) + (@as(u64, 1) << Square.D6) +
+        (@as(u64, 1) << Square.E3) + (@as(u64, 1) << Square.E4) +
+        (@as(u64, 1) << Square.E5) + (@as(u64, 1) << Square.E6) +
+        (@as(u64, 1) << Square.F3) + (@as(u64, 1) << Square.F4) +
+        (@as(u64, 1) << Square.F5) + (@as(u64, 1) << Square.F6) +
+        (@as(u64, 1) << Square.G3) + (@as(u64, 1) << Square.G4) +
+        (@as(u64, 1) << Square.G5) + (@as(u64, 1) << Square.G6) +
+        (@as(u64, 1) << Square.H3) + (@as(u64, 1) << Square.H4) +
+        (@as(u64, 1) << Square.H5) + (@as(u64, 1) << Square.H6), position.board.emptySquares);
 }

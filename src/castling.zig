@@ -20,13 +20,9 @@ pub const CastlingSide = enum(u8) {
 /// to maintain a bitmask we can use in the board struct to easily resolve the legal castling moves.
 pub const CastlingRights = packed struct {
     // The rooks' files
-    r: u16,
+    r: u16 = 0,
     // The kings' files
-    k: u16,
-
-    pub fn init() CastlingRights {
-        return .{ .r = 0, .k = 0 };
-    }
+    k: u16 = 0,
 
     inline fn validFile(f: i8) bool {
         return f >= @as(i8, 0) and f <= @as(i8, 7);
@@ -81,26 +77,26 @@ pub const CastlingRights = packed struct {
 
 test "Castling rights" {
     std.debug.print("Testing castling rights...\n", .{});
-    var castling = CastlingRights.init();
+    var castling = CastlingRights{};
 
     // Update white castling rights (king on E, rooks on A and H)
     try castling.updateCastlingRights(Colour.White, CastlingSide.Kingside, 4 ,7);
-    std.debug.print("White castling rights updated: k={b}, r={b}\n", .{castling.k, castling.r});
+    // std.debug.print("White castling rights updated: k={b}, r={b}\n", .{castling.k, castling.r});
     try std.testing.expect(castling.k == 0b0000100000000000);
     try std.testing.expect(castling.r == 0b0000000100000000);
     try castling.updateCastlingRights(Colour.White, CastlingSide.Queenside, 4, 0);
-    std.debug.print("White castling rights updated: k={b}, r={b}\n", .{castling.k, castling.r});
+    // std.debug.print("White castling rights updated: k={b}, r={b}\n", .{castling.k, castling.r});
     try std.testing.expect(castling.k == 0b0000100000000000);
     try std.testing.expect(castling.r == 0b1000000100000000);
 
     // Update castling rights for black (king on E, rooks on A and H)
     // This should not affect white's rights
     try castling.updateCastlingRights(Colour.Black, CastlingSide.Kingside, 4, 7);
-    std.debug.print("Black castling rights set: k={b}, r={b}\n", .{castling.k, castling.r});
+    // std.debug.print("Black castling rights set: k={b}, r={b}\n", .{castling.k, castling.r});
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000100000001);
     try castling.updateCastlingRights(Colour.Black, CastlingSide.Queenside, 4, 0);
-    std.debug.print("Black castling rights set: k={b}, r={b}\n", .{castling.k, castling.r});
+    // std.debug.print("Black castling rights set: k={b}, r={b}\n", .{castling.k, castling.r});
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000110000001);
 }

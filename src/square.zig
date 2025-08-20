@@ -5,30 +5,30 @@ pub const numSquaresInRow = 8;
 
 pub const Square = struct {
     /// Rank in the range 0-7, or NoRank if invalid
-    r: i8,
+    r: i8 = NoRank,
     /// File in the range 0-7, or NoFile if invalid
-    f: i8,
+    f: i8 = NoFile,
     /// Square bitboard index 0-63, or NoSquare if invalid
-    s: i8,
+    s: i8 = NoSquare,
 
     pub fn fromIndex(index: i8) Square {
-        if (index < 0 or index >= numSquaresOnBoard) return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+        if (index < 0 or index >= numSquaresOnBoard) return .{};
         const rank = 7 - @mod(index, numSquaresInRow);
         const file = 7 - @divTrunc(index, numSquaresInRow);
         return .{ .s = index, .r = @intCast(rank), .f = @intCast(file) };
     }
 
     pub fn fromFileAndRank(file: i8, rank: i8) Square {
-        if (file < 0 or file > 7 or rank < 0 or rank > 7) return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+        if (file < 0 or file > 7 or rank < 0 or rank > 7) return .{};
         const out = 63 - ((file * numSquaresInRow) + rank);
         return .{ .s = @intCast(out), .r = rank, .f = file };
     }
 
     pub fn fromString(s: []const u8) Square {
-        if (s.len != 2 or s[0] < 'a' or s[1] < '1') return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+        if (s.len != 2 or s[0] < 'a' or s[1] < '1') return .{};
         const file = s[0] - 'a';
         const rank = s[1] - '1';
-        if (file > 7 or rank > 7) return .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+        if (file > 7 or rank > 7) return .{};
         const out = 63 - ((file * numSquaresInRow) + rank);
         return .{ .s = @intCast(out), .r = @intCast(rank), .f = @intCast(file) };
     }
@@ -275,7 +275,7 @@ test "Square fromIndex" {
 
     for (testCases) |tc| {
         const s = Square.fromIndex(tc.index);
-        std.debug.print("Rank and File: {d} {d}\n", .{s.r, s.f});
+        // std.debug.print("Rank and File: {d} {d}\n", .{s.r, s.f});
         try std.testing.expectEqual(tc.exp, s.s);
     }
 }
