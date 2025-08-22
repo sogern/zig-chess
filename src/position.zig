@@ -7,7 +7,9 @@ const Square = @import("square.zig").Square;
 pub const Position = struct {
     board: Board = Board{},
     castling: CastlingRights = .{},
-    halfMoveCount: i32 = 0,
+    /// The number of half moves since the last capture or pawn advance, used for the fifty-move rule.
+    halfMoveClock: i32 = 0,
+    /// The number of full moves, starting at 1 and incremented after each black move.
     moveCount: i32 = 0,
     turn: Colour = .White,
     enPassantSquare: Square = .None,

@@ -15,6 +15,9 @@ pub const FENError = error{
     InvalidFEN,
     InvalidBoard,
     InvalidCastlingRightsForGivenBoard,
+    InvalidEnPassantSquare,
+    InvalidHalfMoveClock,
+    InvalidMoveCount,
 };
 
 pub fn decodeFEN(fen: []const u8) !Position {
@@ -41,9 +44,15 @@ pub fn decodeFEN(fen: []const u8) !Position {
             2 => |_| {
                 try fenCastlingRights(position.board, &position.castling, p);
             },
-            3 => |_| {},
-            4 => |_| {},
-            5 => |_| {},
+            3 => |_| {
+                try fenEnPassantSquare(&position.enPassantSquare, p);
+            },
+            4 => |_| {
+                try fenInt32Field(&position.halfMoveClock, p, 0, FENError.InvalidHalfMoveClock);
+            },
+            5 => |_| {
+                try fenInt32Field(&position.moveCount, p, 1, FENError.InvalidMoveCount);
+            },
             else => return FENError.InvalidFEN,
         }
         partsCount += 1;
@@ -52,7 +61,7 @@ pub fn decodeFEN(fen: []const u8) !Position {
     return position;
 }
 
-pub fn fenBoard(board: *Board, boardStr: []const u8) !void {
+fn fenBoard(board: *Board, boardStr: []const u8) !void {
     // std.debug.print("boardStr={s}\n", .{boardStr});
     var rankCount: usize = 0;
     var start: usize = 0;
@@ -99,7 +108,7 @@ pub fn fenBoard(board: *Board, boardStr: []const u8) !void {
     }
 }
 
-pub fn fenCastlingRights(board: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
+fn fenCastlingRights(board: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
     if (castlingStr.len == 0 or castlingStr[0] == '-') {
         castling.* = CastlingRights{};
         return;
@@ -143,6 +152,33 @@ pub fn fenCastlingRights(board: Board, castling: *CastlingRights, castlingStr: [
             },
         }
     }
+}
+
+fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void {
+    if (enPassantStr.len == 0 or enPassantStr[0] == '-') {
+        enPassantSquare.* = Square.None;
+        return;
+    }
+
+    const s = Square.fromString(enPassantStr);
+    if (s.equals(Square.None)) {
+        return FENError.InvalidFEN;
+    }
+    if (s.r != Square.Rank3 and s.r != Square.Rank6) {
+        return FENError.InvalidEnPassantSquare;
+    }
+
+    enPassantSquare.* = s;
+}
+
+fn fenInt32Field(field: *i32, fieldStr: []const u8, minVal: i32, fenError: FENError) !void {
+    const value = std.fmt.parseInt(i32, fieldStr, 10) catch |err| {
+        return err;
+    };
+    if (value < minVal) {
+        return fenError;
+    }
+    field.* = value;
 }
 
 test "decodeFEN valid FEN" {
@@ -197,4 +233,13 @@ test "decodeFEN valid FEN" {
         Square.G5Bit + Square.G6Bit +
         Square.H3Bit + Square.H4Bit +
         Square.H5Bit + Square.H6Bit, position.board.emptySquares);
+}
+
+test "decodeFEN enPassant square" {
+    std.debug.print("Decoding FEN with en passant square...\n", .{});
+    const fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    const position = try decodeFEN(fen);
+
+    const expected = Square.fromFileAndRank(Square.FileE, Square.Rank3);
+    try std.testing.expectEqual(expected, position.enPassantSquare);
 }
