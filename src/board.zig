@@ -201,7 +201,7 @@ test "Board setBitboardBit" {
     std.debug.print("Testing setBitboardBit...\n", .{});
     var bb: bitboard = 0;
     bb = Board.setBitboardBit(bb, Square.E4);
-    try std.testing.expect(bb == (@as(bitboard, 1) << Square.E4));
+    try std.testing.expectEqual(Square.E4Bit, bb);
     // std.debug.print("bb after setting bit {d}: {b}\n", .{Square.E4, bb});
 }
 
@@ -215,7 +215,7 @@ test "Board creation and piece placement" {
     try board.placePiece(Piece.WhiteKing, squareE4);
 
     // Check if the white king is placed correctly
-    const expectedBB: bitboard = @as(bitboard, 1) << Square.E4;
+    const expectedBB: bitboard = Square.E4Bit;
     // std.debug.print("White King bitboard: {b}, expected bitboard: {b}\n", .{board.whiteKing, expectedBB});
     try std.testing.expectEqual(expectedBB, board.whiteKing);
     // std.debug.print("White squares bitboard: {b}, expected bitboard: {b}\n", .{board.whiteSquares, expectedBB});

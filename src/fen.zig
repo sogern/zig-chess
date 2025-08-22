@@ -163,38 +163,38 @@ test "decodeFEN valid FEN" {
         ++ "  ---------------\n";
     try std.testing.expectEqualStrings(expected, position.board.toDebugString());
 
-    try std.testing.expectEqual((@as(u64, 1) << Square.A1) + (@as(u64, 1) << Square.H1), position.board.whiteRooks);
-    try std.testing.expectEqual((@as(u64, 1) << Square.B1) + (@as(u64, 1) << Square.G1), position.board.whiteKnights);
-    try std.testing.expectEqual((@as(u64, 1) << Square.C1) + (@as(u64, 1) << Square.F1), position.board.whiteBishops);
-    try std.testing.expectEqual((@as(u64, 1) << Square.D1), position.board.whiteQueen);
-    try std.testing.expectEqual((@as(u64, 1) << Square.E1), position.board.whiteKing);
-    try std.testing.expectEqual((@as(u64, 1) << Square.A2) + (@as(u64, 1) << Square.B2) +
-        (@as(u64, 1) << Square.C2) + (@as(u64, 1) << Square.D2) +
-        (@as(u64, 1) << Square.E2) + (@as(u64, 1) << Square.F2) +
-        (@as(u64, 1) << Square.G2) + (@as(u64, 1) << Square.H2), position.board.whitePawns);
-    try std.testing.expectEqual((@as(u64, 1) << Square.A8) + (@as(u64, 1) << Square.H8), position.board.blackRooks);
-    try std.testing.expectEqual((@as(u64, 1) << Square.B8) + (@as(u64, 1) << Square.G8), position.board.blackKnights);
-    try std.testing.expectEqual((@as(u64, 1) << Square.C8) + (@as(u64, 1) << Square.F8), position.board.blackBishops);
-    try std.testing.expectEqual((@as(u64, 1) << Square.D8), position.board.blackQueen);
-    try std.testing.expectEqual((@as(u64, 1) << Square.E8), position.board.blackKing);
-    try std.testing.expectEqual((@as(u64, 1) << Square.A7) + (@as(u64, 1) << Square.B7) +
-        (@as(u64, 1) << Square.C7) + (@as(u64, 1) << Square.D7) +
-        (@as(u64, 1) << Square.E7) + (@as(u64, 1) << Square.F7) +
-        (@as(u64, 1) << Square.G7) + (@as(u64, 1) << Square.H7), position.board.blackPawns);
-    try std.testing.expectEqual((@as(u64, 1) << Square.A3) + (@as(u64, 1) << Square.A4) +
-        (@as(u64, 1) << Square.A5) + (@as(u64, 1) << Square.A6) +
-        (@as(u64, 1) << Square.B3) + (@as(u64, 1) << Square.B4) +
-        (@as(u64, 1) << Square.B5) + (@as(u64, 1) << Square.B6) +
-        (@as(u64, 1) << Square.C3) + (@as(u64, 1) << Square.C4) +
-        (@as(u64, 1) << Square.C5) + (@as(u64, 1) << Square.C6) +
-        (@as(u64, 1) << Square.D3) + (@as(u64, 1) << Square.D4) +
-        (@as(u64, 1) << Square.D5) + (@as(u64, 1) << Square.D6) +
-        (@as(u64, 1) << Square.E3) + (@as(u64, 1) << Square.E4) +
-        (@as(u64, 1) << Square.E5) + (@as(u64, 1) << Square.E6) +
-        (@as(u64, 1) << Square.F3) + (@as(u64, 1) << Square.F4) +
-        (@as(u64, 1) << Square.F5) + (@as(u64, 1) << Square.F6) +
-        (@as(u64, 1) << Square.G3) + (@as(u64, 1) << Square.G4) +
-        (@as(u64, 1) << Square.G5) + (@as(u64, 1) << Square.G6) +
-        (@as(u64, 1) << Square.H3) + (@as(u64, 1) << Square.H4) +
-        (@as(u64, 1) << Square.H5) + (@as(u64, 1) << Square.H6), position.board.emptySquares);
+    try std.testing.expectEqual(Square.A1Bit + Square.H1Bit, position.board.whiteRooks);
+    try std.testing.expectEqual(Square.B1Bit + Square.G1Bit, position.board.whiteKnights);
+    try std.testing.expectEqual(Square.C1Bit + Square.F1Bit, position.board.whiteBishops);
+    try std.testing.expectEqual(Square.D1Bit, position.board.whiteQueen);
+    try std.testing.expectEqual(Square.E1Bit, position.board.whiteKing);
+    try std.testing.expectEqual(Square.A2Bit + Square.B2Bit +
+        Square.C2Bit + Square.D2Bit +
+        Square.E2Bit + Square.F2Bit +
+        Square.G2Bit + Square.H2Bit, position.board.whitePawns);
+    try std.testing.expectEqual(Square.A8Bit + Square.H8Bit, position.board.blackRooks);
+    try std.testing.expectEqual(Square.B8Bit + Square.G8Bit, position.board.blackKnights);
+    try std.testing.expectEqual(Square.C8Bit + Square.F8Bit, position.board.blackBishops);
+    try std.testing.expectEqual(Square.D8Bit, position.board.blackQueen);
+    try std.testing.expectEqual(Square.E8Bit, position.board.blackKing);
+    try std.testing.expectEqual(Square.A7Bit + Square.B7Bit +
+        Square.C7Bit + Square.D7Bit +
+        Square.E7Bit + Square.F7Bit +
+        Square.G7Bit + Square.H7Bit, position.board.blackPawns);
+    try std.testing.expectEqual(Square.A3Bit + Square.A4Bit +
+        Square.A5Bit + Square.A6Bit +
+        Square.B3Bit + Square.B4Bit +
+        Square.B5Bit + Square.B6Bit +
+        Square.C3Bit + Square.C4Bit +
+        Square.C5Bit + Square.C6Bit +
+        Square.D3Bit + Square.D4Bit +
+        Square.D5Bit + Square.D6Bit +
+        Square.E3Bit + Square.E4Bit +
+        Square.E5Bit + Square.E6Bit +
+        Square.F3Bit + Square.F4Bit +
+        Square.F5Bit + Square.F6Bit +
+        Square.G3Bit + Square.G4Bit +
+        Square.G5Bit + Square.G6Bit +
+        Square.H3Bit + Square.H4Bit +
+        Square.H5Bit + Square.H6Bit, position.board.emptySquares);
 }
