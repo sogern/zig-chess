@@ -41,7 +41,7 @@ pub const CastlingRights = packed struct {
 
     /// Sets castling rights for given colour.
     /// The rook must be on the left (queenside) or right (kingside) of the king.
-    pub fn updateCastlingRights(self: *CastlingRights, colour: Colour, side: CastlingSide, kingFile: i8, rookFile: i8) !void {
+    pub fn updateCastlingRights(self: CastlingRights, colour: Colour, side: CastlingSide, kingFile: i8, rookFile: i8) !CastlingRights {
         if (colour == Colour.None or !validFile(kingFile) or !validFile(rookFile) or !validSide(side, kingFile, rookFile)) {
             return CastlingError.InvalidCastlingRights;
         }
@@ -60,11 +60,10 @@ pub const CastlingRights = packed struct {
             k |= self.k & 0xFF00;
             r |= self.r & 0xFF00;
         }
-        self.k = k;
-        self.r = r;
+        return .{ .k = k, .r = r };
     }
 
-    pub fn removeCastlingRights(self: *CastlingRights, colour: Colour, side: CastlingSide) !void {
+    pub fn removeCastlingRights(self: CastlingRights, colour: Colour, side: CastlingSide) !CastlingRights {
         if  (side == .None or colour == .None) {
             return CastlingError.InvalidCastlingRights;
         }
@@ -74,13 +73,13 @@ pub const CastlingRights = packed struct {
             k = k >> 8;
             r = r >> 8;
             if (k == 0 or r == 0) {
-                return; // No rights to remove
+                return self; // No rights to remove
             }
             const ki = @as(i8, @ctz(k)); // King bit index
             if (side == .Kingside) {
                 const ksri = @as(i8, @ctz(r)); // Kingside rook bit index
                 if (ksri > ki) {
-                    return; // No rook to the right of the king
+                    return self; // No rook to the right of the king
                 }
                 r = r & ~(@as(u16, 1) << @intCast(ksri)); // Remove kingside rook
                 if (r == 0) {
@@ -91,7 +90,7 @@ pub const CastlingRights = packed struct {
                 // Thus we subtract those from the count
                 const qsri = 7 - (@as(i8, @clz(r)) - 8); // Queenside rook bit index
                 if (qsri < ki) {
-                    return; // No rook to the left of the king
+                    return self; // No rook to the left of the king
                 }
                 r = r & ~(@as(u16, 1) << @intCast(qsri)); // Remove queenside rook
                 if (r == 0) {
@@ -107,13 +106,13 @@ pub const CastlingRights = packed struct {
             k = k & 0x00FF;
             r = r & 0x00FF;
             if (k == 0 or r == 0) {
-                return; // No rights to remove
+                return self; // No rights to remove
             }
             const ki = @as(i8, @ctz(k)); // King bit index
             if (side == .Kingside) {
                 const ksri = @as(i8, @ctz(r)); // Kingside rook bit index
                 if (ksri > ki) {
-                    return; // No rook to the right of the king
+                    return self; // No rook to the right of the king
                 }
                 r = r & ~(@as(u16, 1) << @intCast(ksri)); // Remove kingside rook
                 if (r == 0) {
@@ -124,7 +123,7 @@ pub const CastlingRights = packed struct {
                 // Thus we subtract those from the count
                 const qsri = 7 - (@as(i8, @clz(r)) - 8); // Queenside rook bit index
                 if (qsri < ki) {
-                    return; // No rook to the left of the king
+                    return self; // No rook to the left of the king
                 }
                 r = r & ~(@as(u16, 1) << @intCast(qsri)); // Remove queenside rook
                 if (r == 0) {
@@ -135,8 +134,15 @@ pub const CastlingRights = packed struct {
             k |= self.k & 0xFF00;
             r |= self.r & 0xFF00;
         }
-        self.k = k;
-        self.r = r;
+        return .{ .k = k, .r = r };
+    }
+
+    pub fn removeAllCastlingRights(self: CastlingRights, colour: Colour) !CastlingRights {
+        return switch (colour) {
+            .White => .{ .k = self.k & 0x00FF, .r = self.r & 0x00FF },
+            .Black => .{ .k = self.k & 0xFF00, .r = self.r & 0xFF00 },
+            .None => CastlingError.InvalidCastlingRights,
+        };
     }
 };
 
@@ -145,38 +151,38 @@ test "Castling rights" {
     var castling = CastlingRights{};
 
     // Update white castling rights (king on E, rooks on A and H)
-    try castling.updateCastlingRights(.White, .Kingside, 4 ,7);
+    castling = try castling.updateCastlingRights(.White, .Kingside, 4 ,7);
     try std.testing.expect(castling.k == 0b0000100000000000);
     try std.testing.expect(castling.r == 0b0000000100000000);
-    try castling.updateCastlingRights(.White, .Queenside, 4, 0);
+    castling = try castling.updateCastlingRights(.White, .Queenside, 4, 0);
     try std.testing.expect(castling.k == 0b0000100000000000);
     try std.testing.expect(castling.r == 0b1000000100000000);
 
     // Update castling rights for black (king on E, rooks on A and H)
-    try castling.updateCastlingRights(.Black, .Kingside, 4, 7);
+    castling = try castling.updateCastlingRights(.Black, .Kingside, 4, 7);
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000100000001);
-    try castling.updateCastlingRights(.Black, .Queenside, 4, 0);
+    castling = try castling.updateCastlingRights(.Black, .Queenside, 4, 0);
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000110000001);
 
     // Remove white kingside castling rights
-    try castling.removeCastlingRights(.White, .Kingside);
+    castling = try castling.removeCastlingRights(.White, .Kingside);
     try std.testing.expect(castling.k == 0b0000100000001000);
     try std.testing.expect(castling.r == 0b1000000010000001);
 
     // Remove white queenside castling rights
-    try castling.removeCastlingRights(.White, .Queenside);
+    castling = try castling.removeCastlingRights(.White, .Queenside);
     try std.testing.expect(castling.k == 0b0000000000001000);
     try std.testing.expect(castling.r == 0b0000000010000001);
 
     // Remove black kingside castling rights
-    try castling.removeCastlingRights(.Black, .Kingside);
+    castling = try castling.removeCastlingRights(.Black, .Kingside);
     try std.testing.expect(castling.k == 0b0000000000001000);
     try std.testing.expect(castling.r == 0b0000000010000000);
 
     // Remove black queenside castling rights
-    try castling.removeCastlingRights(.Black, .Queenside);
+    castling = try castling.removeCastlingRights(.Black, .Queenside);
     try std.testing.expect(castling.k == 0b0000000000000000);
     try std.testing.expect(castling.r == 0b0000000000000000);
 }
@@ -186,34 +192,34 @@ test "Chess960 castling rights" {
     var castling = CastlingRights{};
 
     // Update white castling rights (king on F, rooks on B and G)
-    try castling.updateCastlingRights(.White, .Kingside, 5, 6);
-    try castling.updateCastlingRights(.White, .Queenside, 5, 1);
+    castling = try castling.updateCastlingRights(.White, .Kingside, 5, 6);
+    castling = try castling.updateCastlingRights(.White, .Queenside, 5, 1);
     try std.testing.expect(castling.k == 0b0000010000000000);
     try std.testing.expect(castling.r == 0b0100001000000000);
 
     // Update black castling rights (king on F, rooks on B and G)
-    try castling.updateCastlingRights(.Black, .Kingside, 5, 6);
-    try castling.updateCastlingRights(.Black, .Queenside, 5, 1);
+    castling = try castling.updateCastlingRights(.Black, .Kingside, 5, 6);
+    castling = try castling.updateCastlingRights(.Black, .Queenside, 5, 1);
     try std.testing.expect(castling.k == 0b0000010000000100);
     try std.testing.expect(castling.r == 0b0100001001000010);
 
     // Remove white kingside castling rights
-    try castling.removeCastlingRights(.White, .Kingside);
+    castling = try castling.removeCastlingRights(.White, .Kingside);
     try std.testing.expect(castling.k == 0b0000010000000100);
     try std.testing.expect(castling.r == 0b0100000001000010);
 
     // Remove white queenside castling rights
-    try castling.removeCastlingRights(.White, .Queenside);
+    castling = try castling.removeCastlingRights(.White, .Queenside);
     try std.testing.expect(castling.k == 0b0000000000000100);
     try std.testing.expect(castling.r == 0b0000000001000010);
 
     // Remove black kingside castling rights
-    try castling.removeCastlingRights(.Black, .Kingside);
+    castling = try castling.removeCastlingRights(.Black, .Kingside);
     try std.testing.expect(castling.k == 0b0000000000000100);
     try std.testing.expect(castling.r == 0b0000000001000000);
 
     // Remove black queenside castling rights
-    try castling.removeCastlingRights(.Black, .Queenside);
+    castling = try castling.removeCastlingRights(.Black, .Queenside);
     try std.testing.expect(castling.k == 0b0000000000000000);
     try std.testing.expect(castling.r == 0b0000000000000000);
 }
