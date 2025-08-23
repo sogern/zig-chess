@@ -25,27 +25,34 @@ pub const Piece = enum(u8) {
 
     pub fn fromChar(c: u8) Piece {
         switch (c) {
-            'K' => return Piece.WhiteKing,
-            'Q' => return Piece.WhiteQueen,
-            'R' => return Piece.WhiteRook,
-            'B' => return Piece.WhiteBishop,
-            'N' => return Piece.WhiteKnight,
-            'P' => return Piece.WhitePawn,
-            'k' => return Piece.BlackKing,
-            'q' => return Piece.BlackQueen,
-            'r' => return Piece.BlackRook,
-            'b' => return Piece.BlackBishop,
-            'n' => return Piece.BlackKnight,
-            'p' => return Piece.BlackPawn,
-            else => return Piece.None,
+            'K' => return .WhiteKing,
+            'Q' => return .WhiteQueen,
+            'R' => return .WhiteRook,
+            'B' => return .WhiteBishop,
+            'N' => return .WhiteKnight,
+            'P' => return .WhitePawn,
+            'k' => return .BlackKing,
+            'q' => return .BlackQueen,
+            'r' => return .BlackRook,
+            'b' => return .BlackBishop,
+            'n' => return .BlackKnight,
+            'p' => return .BlackPawn,
+            else => return .None,
         }
     }
 
     pub fn @"type"(self: @This()) PieceType {
-        if (self == Piece.None) {
-            return PieceType.None;
+        if (self == .None) {
+            return .None;
         }
         return @enumFromInt(@intFromEnum(self) % 6);
+    }
+
+    pub fn colour(self: @This()) Colour {
+        if (self == .None) {
+            return .None;
+        }
+        return @enumFromInt(@intFromEnum(self) / 6);
     }
 
     pub fn toChar(self: @This()) u8 {
@@ -54,8 +61,8 @@ pub const Piece = enum(u8) {
 };
 
 pub fn newPiece(pieceType: PieceType, colour: Colour) Piece {
-    if (colour == Colour.None or pieceType == PieceType.None) {
-        return Piece.None;
+    if (colour == .None or pieceType == .None) {
+        return .None;
     }
     return @enumFromInt(@intFromEnum(pieceType) + (@intFromEnum(colour) * 6));
 }
@@ -81,9 +88,9 @@ pub const Colour = enum(u8) {
 
     pub fn fromChar(c: u8) Colour {
         switch (c) {
-            'w' => return Colour.White,
-            'b' => return Colour.Black,
-            else => return Colour.None,
+            'w' => return .White,
+            'b' => return .Black,
+            else => return .None,
         }
     }
 
@@ -99,19 +106,19 @@ test "create new pieces" {
         e: Piece,
     };
     const testCases: [13]TestCase = .{
-        .{ .c = Colour.White, .pt = PieceType.King, .e = Piece.WhiteKing },
-        .{ .c = Colour.Black, .pt = PieceType.King, .e = Piece.BlackKing },
-        .{ .c = Colour.White, .pt = PieceType.Queen, .e = Piece.WhiteQueen },
-        .{ .c = Colour.Black, .pt = PieceType.Queen, .e = Piece.BlackQueen },
-        .{ .c = Colour.White, .pt = PieceType.Rook, .e = Piece.WhiteRook },
-        .{ .c = Colour.Black, .pt = PieceType.Rook, .e = Piece.BlackRook },
-        .{ .c = Colour.White, .pt = PieceType.Bishop, .e = Piece.WhiteBishop },
-        .{ .c = Colour.Black, .pt = PieceType.Bishop, .e = Piece.BlackBishop },
-        .{ .c = Colour.White, .pt = PieceType.Knight, .e = Piece.WhiteKnight },
-        .{ .c = Colour.Black, .pt = PieceType.Knight, .e = Piece.BlackKnight },
-        .{ .c = Colour.White, .pt = PieceType.Pawn, .e = Piece.WhitePawn },
-        .{ .c = Colour.Black, .pt = PieceType.Pawn, .e = Piece.BlackPawn },
-        .{ .c = Colour.None, .pt = PieceType.None, .e = Piece.None },
+        .{ .c = .White, .pt = .King, .e = .WhiteKing },
+        .{ .c = .Black, .pt = .King, .e = .BlackKing },
+        .{ .c = .White, .pt = .Queen, .e = .WhiteQueen },
+        .{ .c = .Black, .pt = .Queen, .e = .BlackQueen },
+        .{ .c = .White, .pt = .Rook, .e = .WhiteRook },
+        .{ .c = .Black, .pt = .Rook, .e = .BlackRook },
+        .{ .c = .White, .pt = .Bishop, .e = .WhiteBishop },
+        .{ .c = .Black, .pt = .Bishop, .e = .BlackBishop },
+        .{ .c = .White, .pt = .Knight, .e = .WhiteKnight },
+        .{ .c = .Black, .pt = .Knight, .e = .BlackKnight },
+        .{ .c = .White, .pt = .Pawn, .e = .WhitePawn },
+        .{ .c = .Black, .pt = .Pawn, .e = .BlackPawn },
+        .{ .c = .None, .pt = .None, .e = .None },
     };
 
     for (testCases) |tc| {
@@ -125,19 +132,19 @@ test "piece type from pieces" {
         e: PieceType,
     };
     const testCases: [13]TestCase = .{
-        .{ .p = Piece.WhiteKing, .e = PieceType.King },
-        .{ .p = Piece.BlackKing, .e = PieceType.King },
-        .{ .p = Piece.WhiteQueen, .e = PieceType.Queen },
-        .{ .p = Piece.BlackQueen, .e = PieceType.Queen },
-        .{ .p = Piece.WhiteRook, .e = PieceType.Rook },
-        .{ .p = Piece.BlackRook, .e = PieceType.Rook },
-        .{ .p = Piece.WhiteBishop, .e = PieceType.Bishop },
-        .{ .p = Piece.BlackBishop, .e = PieceType.Bishop },
-        .{ .p = Piece.WhiteKnight, .e = PieceType.Knight },
-        .{ .p = Piece.BlackKnight, .e = PieceType.Knight },
-        .{ .p = Piece.WhitePawn, .e = PieceType.Pawn },
-        .{ .p = Piece.BlackPawn, .e = PieceType.Pawn },
-        .{ .p = Piece.None, .e = PieceType.None },
+        .{ .p = .WhiteKing, .e = .King },
+        .{ .p = .BlackKing, .e = .King },
+        .{ .p = .WhiteQueen, .e = .Queen },
+        .{ .p = .BlackQueen, .e = .Queen },
+        .{ .p = .WhiteRook, .e = .Rook },
+        .{ .p = .BlackRook, .e = .Rook },
+        .{ .p = .WhiteBishop, .e = .Bishop },
+        .{ .p = .BlackBishop, .e = .Bishop },
+        .{ .p = .WhiteKnight, .e = .Knight },
+        .{ .p = .BlackKnight, .e = .Knight },
+        .{ .p = .WhitePawn, .e = .Pawn },
+        .{ .p = .BlackPawn, .e = .Pawn },
+        .{ .p = .None, .e = .None },
     };
 
     for (testCases) |tc| {
@@ -150,13 +157,13 @@ test "string representation of piece types" {
         pt: PieceType,
         e: u8,
     } = .{
-        .{ .pt = PieceType.King, .e = 'k' },
-        .{ .pt = PieceType.Queen, .e = 'q' },
-        .{ .pt = PieceType.Rook, .e = 'r' },
-        .{ .pt = PieceType.Bishop, .e = 'b' },
-        .{ .pt = PieceType.Knight, .e = 'n' },
-        .{ .pt = PieceType.Pawn, .e = 'p' },
-        .{ .pt = PieceType.None, .e = ' ' },
+        .{ .pt = .King, .e = 'k' },
+        .{ .pt = .Queen, .e = 'q' },
+        .{ .pt = .Rook, .e = 'r' },
+        .{ .pt = .Bishop, .e = 'b' },
+        .{ .pt = .Knight, .e = 'n' },
+        .{ .pt = .Pawn, .e = 'p' },
+        .{ .pt = .None, .e = ' ' },
     };
 
     for (testCases) |tc| {
@@ -169,9 +176,9 @@ test "string representation of colours" {
         c: Colour,
         e: u8,
     } = .{
-        .{ .c = Colour.White, .e = 'w' },
-        .{ .c = Colour.Black, .e = 'b' },
-        .{ .c = Colour.None, .e = ' ' },
+        .{ .c = .White, .e = 'w' },
+        .{ .c = .Black, .e = 'b' },
+        .{ .c = .None, .e = ' ' },
     };
 
     for (testCases) |tc| {
