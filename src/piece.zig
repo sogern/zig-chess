@@ -97,6 +97,14 @@ pub const Colour = enum(u8) {
     pub fn toChar(self: @This()) u8 {
         return colours[@intFromEnum(self)];
     }
+
+    pub fn opposite(self: @This()) Colour {
+        return switch (self) {
+            .White => .Black,
+            .Black => .White,
+            .None => .None,
+        };
+    }
 };
 
 test "create new pieces" {

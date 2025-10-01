@@ -45,25 +45,25 @@ pub const Board = packed struct {
     }
 
     inline fn setBitboardBit(bb: bitboard, s: i8) bitboard {
-        return bb | (@as(bitboard, 1) << @intCast(s));
+        return bb | Square.squareBit(@intCast(s));
     }
 
     inline fn clearBitboardBit(bb: bitboard, s: i8) bitboard {
-        return bb & ~(@as(bitboard, 1) << @intCast(s));
+        return bb & ~Square.squareBit(@intCast(s));
     }
 
     pub inline fn isSquareOccupied(self: Board, square: Square) bool {
-        const bit: bitboard = (@as(bitboard, 1) << @intCast(square.s));
+        const bit: bitboard = Square.squareBit(@intCast(square.s));
         return (self.whiteSquares & bit) != 0 or (self.blackSquares & bit) != 0;
     }
 
     pub inline fn isSquareEmpty(self: Board, square: Square) bool {
-        const bit: bitboard = (@as(bitboard, 1) << @intCast(square.s));
+        const bit: bitboard = Square.squareBit(@intCast(square.s));
         return (self.emptySquares & bit) != 0;
     }
 
     pub fn getPieceOnSquare(self: Board, square: Square) Piece {
-        const bit: bitboard = (@as(bitboard, 1) << @intCast(square.s));
+        const bit: bitboard = Square.squareBit(@intCast(square.s));
         if ((self.whiteSquares & bit) != 0) {
             if ((self.whiteKing & bit) != 0) return Piece.WhiteKing;
             if ((self.whiteQueen & bit) != 0) return Piece.WhiteQueen;
@@ -79,7 +79,7 @@ pub const Board = packed struct {
             if ((self.blackKnights & bit) != 0) return Piece.BlackKnight;
             if ((self.blackPawns & bit) != 0) return Piece.BlackPawn;
         }
-        return Piece.None; // No piece on the square
+        return Piece.None;
     }
 
     pub fn placePiece(self: *Board, p: Piece, square: Square) !void {
@@ -150,12 +150,12 @@ pub const Board = packed struct {
             .None => .None,
             .White => {
                 if (self.whiteKing == 0) return Square.None;
-                const index = @as(i8, @ctz(self.whiteKing));
+                const index = @as(i8, @clz(self.whiteKing));
                 return Square.fromIndex(index);
             },
             .Black => {
                 if (self.blackKing == 0) return Square.None;
-                const index = @as(i8, @ctz(self.blackKing));
+                const index = @as(i8, @clz(self.blackKing));
                 return Square.fromIndex(index);
             },
         };
@@ -177,9 +177,9 @@ pub const Board = packed struct {
             "1                \n",
             "  ---------------\n",
         };
-        var out = std.ArrayList(u8).init(alloc);
-        out.appendSlice(lines[0]) catch unreachable;
-        out.appendSlice(lines[1]) catch unreachable;
+        var out = std.ArrayList(u8).initCapacity(alloc, lines[0].len * lines.len) catch unreachable;
+        out.appendSlice(alloc, lines[0]) catch unreachable;
+        out.appendSlice(alloc, lines[1]) catch unreachable;
         var bufs: [8][20]u8 = undefined;
         for (0..8) |rank| {
             const r: i8 = @intCast(7 - rank);
@@ -190,10 +190,28 @@ pub const Board = packed struct {
                 const piece = self.getPieceOnSquare(Square.fromFileAndRank(f, r));
                 bufs[rank][file * 2 + 2] = piece.toChar();
             }
-            out.appendSlice(bufs[rank][0..lines[l].len]) catch unreachable;
+            out.appendSlice(alloc, bufs[rank][0..lines[l].len]) catch unreachable;
         }
-        out.appendSlice(lines[lines.len-1]) catch unreachable;
+        out.appendSlice(alloc, lines[lines.len-1]) catch unreachable;
         return out.items;
+    }
+
+    pub fn debugInternalBitboards(self: Board) void {
+        std.debug.print("White King:   {b:0>64}\n", .{self.whiteKing});
+        std.debug.print("White Queen:  {b:0>64}\n", .{self.whiteQueen});
+        std.debug.print("White Rooks:  {b:0>64}\n", .{self.whiteRooks});
+        std.debug.print("White Bishops:{b:0>64}\n", .{self.whiteBishops});
+        std.debug.print("White Knights:{b:0>64}\n", .{self.whiteKnights});
+        std.debug.print("White Pawns:  {b:0>64}\n", .{self.whitePawns});
+        std.debug.print("Black King:   {b:0>64}\n", .{self.blackKing});
+        std.debug.print("Black Queen:  {b:0>64}\n", .{self.blackQueen});
+        std.debug.print("Black Rooks:  {b:0>64}\n", .{self.blackRooks});
+        std.debug.print("Black Bishops:{b:0>64}\n", .{self.blackBishops});
+        std.debug.print("Black Knights:{b:0>64}\n", .{self.blackKnights});
+        std.debug.print("Black Pawns:  {b:0>64}\n", .{self.blackPawns});
+        std.debug.print("White Squares:{b:0>64}\n", .{self.whiteSquares});
+        std.debug.print("Black Squares:{b:0>64}\n", .{self.blackSquares});
+        std.debug.print("Empty Squares:{b:0>64}\n", .{self.emptySquares});
     }
 };
 
@@ -201,27 +219,35 @@ test "Board setBitboardBit" {
     std.debug.print("Testing setBitboardBit...\n", .{});
     var bb: bitboard = 0;
     bb = Board.setBitboardBit(bb, Square.E4);
-    try std.testing.expectEqual(Square.E4Bit, bb);
+    try std.testing.expectEqual(Square.squareBit(Square.E4), bb);
     // std.debug.print("bb after setting bit {d}: {b}\n", .{Square.E4, bb});
+}
+
+test "Board clearBitboardBit" {
+    std.debug.print("Testing clearBitboardBit...\n", .{});
+    var bb: bitboard = 0xFFFFFFFFFFFFFFFF;
+    bb = Board.clearBitboardBit(bb, Square.E4);
+    try std.testing.expectEqual(~Square.squareBit(Square.E4), bb);
+    // std.debug.print("bb after clearing bit {d}: {b}\n", .{Square.E4, bb});
 }
 
 test "Board creation and piece placement" {
     std.debug.print("Create board and place pieces...\n", .{});
     var board = Board{};
 
-    // Place a white king on e1 (square 60)
+    // Place a white king on e4
     const squareE4 = Square.fromFileAndRank(4, 3); // File E, Rank 4
-    // std.debug.print("squareE1: {d}\n", .{squareE4.s});
+    // std.debug.print("squareE4: {d}\n", .{squareE4.s});
     try board.placePiece(Piece.WhiteKing, squareE4);
 
     // Check if the white king is placed correctly
-    const expectedBB: bitboard = Square.E4Bit;
-    // std.debug.print("White King bitboard: {b}, expected bitboard: {b}\n", .{board.whiteKing, expectedBB});
+    const expectedBB: bitboard = Square.squareBit(Square.E4);
+    // std.debug.print("White King bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.whiteKing, expectedBB});
     try std.testing.expectEqual(expectedBB, board.whiteKing);
-    // std.debug.print("White squares bitboard: {b}, expected bitboard: {b}\n", .{board.whiteSquares, expectedBB});
+    // std.debug.print("White squares bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.whiteSquares, expectedBB});
     try std.testing.expectEqual(expectedBB, board.whiteSquares);
     const expectedEmptyQuares: bitboard = 0xFFFFFFFFFFFFFFFF & ~expectedBB;
-    // std.debug.print("Empty squares bitboard: {b}, expected bitboard: {b}\n", .{board.emptySquares, expectedEmptyQuares});
+    // std.debug.print("Empty squares bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.emptySquares, expectedEmptyQuares});
     try std.testing.expectEqual(expectedEmptyQuares, board.emptySquares);
 }
 
@@ -230,13 +256,15 @@ test "Board getKingSquare" {
     var board = Board{};
 
     // Place a white king on e1
-    const e1 = Square.fromFileAndRank(4, 0);
+    const e1 = Square.fromFileAndRank(Square.FileE, Square.Rank1);
     try board.placePiece(Piece.WhiteKing, e1);
+    // std.debug.print("White King bitboard: {b:0>64}\n", .{board.whiteKing});
     const whiteKingSquare = board.getKingSquare(Colour.White);
+    // std.debug.print("White King is on square: {s}\n", .{whiteKingSquare.toString()});
     try std.testing.expectEqual(true, whiteKingSquare.equals(e1));
 
     // Place a black king on e8
-    const e8 = Square.fromFileAndRank(4, 7);
+    const e8 = Square.fromFileAndRank(Square.FileE, Square.Rank8);
     try board.placePiece(Piece.BlackKing, e8);
     const blackKingSquare = board.getKingSquare(Colour.Black);
     try std.testing.expectEqual(true, blackKingSquare.equals(e8));
@@ -247,9 +275,9 @@ test "Board toDebugString" {
     var board = Board{};
 
     // Place some pieces
-    try board.placePiece(Piece.WhiteKing, Square.fromFileAndRank(4, 3)); // E4
-    try board.placePiece(Piece.BlackQueen, Square.fromFileAndRank(3, 5)); // D6
-    try board.placePiece(Piece.WhiteRook, Square.fromFileAndRank(0, 0)); // A1
+    try board.placePiece(Piece.WhiteKing, Square.fromFileAndRank(Square.FileE, Square.Rank4)); // E4
+    try board.placePiece(Piece.BlackQueen, Square.fromFileAndRank(Square.FileD, Square.Rank6)); // D6
+    try board.placePiece(Piece.WhiteRook, Square.fromFileAndRank(Square.FileA, Square.Rank1)); // A1
 
     const expected = "  a b c d e f g h\n"
         ++ "  ---------------\n"

@@ -11,16 +11,20 @@ pub const Square = struct {
     /// Square bitboard index 0-63, or NoSquare if invalid
     s: i8 = NoSquare,
 
+    pub inline fn squareBit(index: usize) u64 {
+        return squareBits[index];
+    }
+
     pub fn fromIndex(index: i8) Square {
         if (index < 0 or index >= numSquaresOnBoard) return .{};
-        const rank = 7 - @mod(index, numSquaresInRow);
-        const file = 7 - @divTrunc(index, numSquaresInRow);
+        const rank = @divTrunc(index, numSquaresInRow);
+        const file = @mod(index, numSquaresInRow);
         return .{ .s = index, .r = @intCast(rank), .f = @intCast(file) };
     }
 
     pub fn fromFileAndRank(file: i8, rank: i8) Square {
         if (file < 0 or file > 7 or rank < 0 or rank > 7) return .{};
-        const out = 63 - ((file * numSquaresInRow) + rank);
+        const out = (rank * numSquaresInRow) + file;
         return .{ .s = @intCast(out), .r = rank, .f = file };
     }
 
@@ -29,149 +33,151 @@ pub const Square = struct {
         const file = s[0] - 'a';
         const rank = s[1] - '1';
         if (file > 7 or rank > 7) return .{};
-        const out = 63 - ((file * numSquaresInRow) + rank);
+        const out = (rank * numSquaresInRow) + file;
         return .{ .s = @intCast(out), .r = @intCast(rank), .f = @intCast(file) };
     }
 
     pub fn toString(self: Square) []const u8 {
         if (self.s == NoSquare) return "";
-        return squareStrings[63 - @as(usize, @intCast(self.s))];
+        return squareStrings[@as(usize, @intCast(self.s))];
     }
 
     pub fn equals(self: Square, other: Square) bool {
         return self.s == other.s and self.f == other.f and self.r == other.r;
     }
 
-    pub const A1 = 63;
-    pub const A2 = 62;
-    pub const A3 = 61;
-    pub const A4 = 60;
-    pub const A5 = 59;
-    pub const A6 = 58;
-    pub const A7 = 57;
-    pub const A8 = 56;
-    pub const B1 = 55;
-    pub const B2 = 54;
-    pub const B3 = 53;
-    pub const B4 = 52;
-    pub const B5 = 51;
-    pub const B6 = 50;
-    pub const B7 = 49;
-    pub const B8 = 48;
-    pub const C1 = 47;
-    pub const C2 = 46;
-    pub const C3 = 45;
-    pub const C4 = 44;
-    pub const C5 = 43;
-    pub const C6 = 42;
-    pub const C7 = 41;
-    pub const C8 = 40;
-    pub const D1 = 39;
-    pub const D2 = 38;
-    pub const D3 = 37;
-    pub const D4 = 36;
-    pub const D5 = 35;
-    pub const D6 = 34;
-    pub const D7 = 33;
-    pub const D8 = 32;
-    pub const E1 = 31;
-    pub const E2 = 30;
-    pub const E3 = 29;
-    pub const E4 = 28;
-    pub const E5 = 27;
-    pub const E6 = 26;
-    pub const E7 = 25;
-    pub const E8 = 24;
-    pub const F1 = 23;
-    pub const F2 = 22;
-    pub const F3 = 21;
-    pub const F4 = 20;
-    pub const F5 = 19;
-    pub const F6 = 18;
-    pub const F7 = 17;
-    pub const F8 = 16;
-    pub const G1 = 15;
-    pub const G2 = 14;
-    pub const G3 = 13;
-    pub const G4 = 12;
-    pub const G5 = 11;
-    pub const G6 = 10;
-    pub const G7 = 9;
-    pub const G8 = 8;
-    pub const H1 = 7;
-    pub const H2 = 6;
-    pub const H3 = 5;
-    pub const H4 = 4;
-    pub const H5 = 3;
-    pub const H6 = 2;
-    pub const H7 = 1;
-    pub const H8 = 0;
     pub const NoSquare: i8 = -1;
+    pub const A1 = 0;
+    pub const B1 = 1;
+    pub const C1 = 2;
+    pub const D1 = 3;
+    pub const E1 = 4;
+    pub const F1 = 5;
+    pub const G1 = 6;
+    pub const H1 = 7;
+    pub const A2 = 8;
+    pub const B2 = 9;
+    pub const C2 = 10;
+    pub const D2 = 11;
+    pub const E2 = 12;
+    pub const F2 = 13;
+    pub const G2 = 14;
+    pub const H2 = 15;
+    pub const A3 = 16;
+    pub const B3 = 17;
+    pub const C3 = 18;
+    pub const D3 = 19;
+    pub const E3 = 20;
+    pub const F3 = 21;
+    pub const G3 = 22;
+    pub const H3 = 23;
+    pub const A4 = 24;
+    pub const B4 = 25;
+    pub const C4 = 26;
+    pub const D4 = 27;
+    pub const E4 = 28;
+    pub const F4 = 29;
+    pub const G4 = 30;
+    pub const H4 = 31;
+    pub const A5 = 32;
+    pub const B5 = 33;
+    pub const C5 = 34;
+    pub const D5 = 35;
+    pub const E5 = 36;
+    pub const F5 = 37;
+    pub const G5 = 38;
+    pub const H5 = 39;
+    pub const A6 = 40;
+    pub const B6 = 41;
+    pub const C6 = 42;
+    pub const D6 = 43;
+    pub const E6 = 44;
+    pub const F6 = 45;
+    pub const G6 = 46;
+    pub const H6 = 47;
+    pub const A7 = 48;
+    pub const B7 = 49;
+    pub const C7 = 50;
+    pub const D7 = 51;
+    pub const E7 = 52;
+    pub const F7 = 53;
+    pub const G7 = 54;
+    pub const H7 = 55;
+    pub const A8 = 56;
+    pub const B8 = 57;
+    pub const C8 = 58;
+    pub const D8 = 59;
+    pub const E8 = 60;
+    pub const F8 = 61;
+    pub const G8 = 62;
+    pub const H8 = 63;
 
-    pub const A1Bit = @as(u64, 1) << A1;
-    pub const A2Bit = @as(u64, 1) << A2;
-    pub const A3Bit = @as(u64, 1) << A3;
-    pub const A4Bit = @as(u64, 1) << A4;
-    pub const A5Bit = @as(u64, 1) << A5;
-    pub const A6Bit = @as(u64, 1) << A6;
-    pub const A7Bit = @as(u64, 1) << A7;
-    pub const A8Bit = @as(u64, 1) << A8;
-    pub const B1Bit = @as(u64, 1) << B1;
-    pub const B2Bit = @as(u64, 1) << B2;
-    pub const B3Bit = @as(u64, 1) << B3;
-    pub const B4Bit = @as(u64, 1) << B4;
-    pub const B5Bit = @as(u64, 1) << B5;
-    pub const B6Bit = @as(u64, 1) << B6;
-    pub const B7Bit = @as(u64, 1) << B7;
-    pub const B8Bit = @as(u64, 1) << B8;
-    pub const C1Bit = @as(u64, 1) << C1;
-    pub const C2Bit = @as(u64, 1) << C2;
-    pub const C3Bit = @as(u64, 1) << C3;
-    pub const C4Bit = @as(u64, 1) << C4;
-    pub const C5Bit = @as(u64, 1) << C5;
-    pub const C6Bit = @as(u64, 1) << C6;
-    pub const C7Bit = @as(u64, 1) << C7;
-    pub const C8Bit = @as(u64, 1) << C8;
-    pub const D1Bit = @as(u64, 1) << D1;
-    pub const D2Bit = @as(u64, 1) << D2;
-    pub const D3Bit = @as(u64, 1) << D3;
-    pub const D4Bit = @as(u64, 1) << D4;
-    pub const D5Bit = @as(u64, 1) << D5;
-    pub const D6Bit = @as(u64, 1) << D6;
-    pub const D7Bit = @as(u64, 1) << D7;
-    pub const D8Bit = @as(u64, 1) << D8;
-    pub const E1Bit = @as(u64, 1) << E1;
-    pub const E2Bit = @as(u64, 1) << E2;
-    pub const E3Bit = @as(u64, 1) << E3;
-    pub const E4Bit = @as(u64, 1) << E4;
-    pub const E5Bit = @as(u64, 1) << E5;
-    pub const E6Bit = @as(u64, 1) << E6;
-    pub const E7Bit = @as(u64, 1) << E7;
-    pub const E8Bit = @as(u64, 1) << E8;
-    pub const F1Bit = @as(u64, 1) << F1;
-    pub const F2Bit = @as(u64, 1) << F2;
-    pub const F3Bit = @as(u64, 1) << F3;
-    pub const F4Bit = @as(u64, 1) << F4;
-    pub const F5Bit = @as(u64, 1) << F5;
-    pub const F6Bit = @as(u64, 1) << F6;
-    pub const F7Bit = @as(u64, 1) << F7;
-    pub const F8Bit = @as(u64, 1) << F8;
-    pub const G1Bit = @as(u64, 1) << G1;
-    pub const G2Bit = @as(u64, 1) << G2;
-    pub const G3Bit = @as(u64, 1) << G3;
-    pub const G4Bit = @as(u64, 1) << G4;
-    pub const G5Bit = @as(u64, 1) << G5;
-    pub const G6Bit = @as(u64, 1) << G6;
-    pub const G7Bit = @as(u64, 1) << G7;
-    pub const G8Bit = @as(u64, 1) << G8;
-    pub const H1Bit = @as(u64, 1) << H1;
-    pub const H2Bit = @as(u64, 1) << H2;
-    pub const H3Bit = @as(u64, 1) << H3;
-    pub const H4Bit = @as(u64, 1) << H4;
-    pub const H5Bit = @as(u64, 1) << H5;
-    pub const H6Bit = @as(u64, 1) << H6;
-    pub const H7Bit = @as(u64, 1) << H7;
-    pub const H8Bit = @as(u64, 1) << H8;
+    pub const squareBits = [_]u64{
+        @as(u64, 1) << (63 - A1),
+        @as(u64, 1) << (63 - B1),
+        @as(u64, 1) << (63 - C1),
+        @as(u64, 1) << (63 - D1),
+        @as(u64, 1) << (63 - E1),
+        @as(u64, 1) << (63 - F1),
+        @as(u64, 1) << (63 - G1),
+        @as(u64, 1) << (63 - H1),
+        @as(u64, 1) << (63 - A2),
+        @as(u64, 1) << (63 - B2),
+        @as(u64, 1) << (63 - C2),
+        @as(u64, 1) << (63 - D2),
+        @as(u64, 1) << (63 - E2),
+        @as(u64, 1) << (63 - F2),
+        @as(u64, 1) << (63 - G2),
+        @as(u64, 1) << (63 - H2),
+        @as(u64, 1) << (63 - A3),
+        @as(u64, 1) << (63 - B3),
+        @as(u64, 1) << (63 - C3),
+        @as(u64, 1) << (63 - D3),
+        @as(u64, 1) << (63 - E3),
+        @as(u64, 1) << (63 - F3),
+        @as(u64, 1) << (63 - G3),
+        @as(u64, 1) << (63 - H3),
+        @as(u64, 1) << (63 - A4),
+        @as(u64, 1) << (63 - B4),
+        @as(u64, 1) << (63 - C4),
+        @as(u64, 1) << (63 - D4),
+        @as(u64, 1) << (63 - E4),
+        @as(u64, 1) << (63 - F4),
+        @as(u64, 1) << (63 - G4),
+        @as(u64, 1) << (63 - H4),
+        @as(u64, 1) << (63 - A5),
+        @as(u64, 1) << (63 - B5),
+        @as(u64, 1) << (63 - C5),
+        @as(u64, 1) << (63 - D5),
+        @as(u64, 1) << (63 - E5),
+        @as(u64, 1) << (63 - F5),
+        @as(u64, 1) << (63 - G5),
+        @as(u64, 1) << (63 - H5),
+        @as(u64, 1) << (63 - A6),
+        @as(u64, 1) << (63 - B6),
+        @as(u64, 1) << (63 - C6),
+        @as(u64, 1) << (63 - D6),
+        @as(u64, 1) << (63 - E6),
+        @as(u64, 1) << (63 - F6),
+        @as(u64, 1) << (63 - G6),
+        @as(u64, 1) << (63 - H6),
+        @as(u64, 1) << (63 - A7),
+        @as(u64, 1) << (63 - B7),
+        @as(u64, 1) << (63 - C7),
+        @as(u64, 1) << (63 - D7),
+        @as(u64, 1) << (63 - E7),
+        @as(u64, 1) << (63 - F7),
+        @as(u64, 1) << (63 - G7),
+        @as(u64, 1) << (63 - H7),
+        @as(u64, 1) << (63 - A8),
+        @as(u64, 1) << (63 - B8),
+        @as(u64, 1) << (63 - C8),
+        @as(u64, 1) << (63 - D8),
+        @as(u64, 1) << (63 - E8),
+        @as(u64, 1) << (63 - F8),
+        @as(u64, 1) << (63 - G8),
+        @as(u64, 1) << (63 - H8),
+    };
 
     pub const FileA = 0;
     pub const FileB = 1;
@@ -197,14 +203,14 @@ pub const Square = struct {
 };
 
 const squareStrings = [_]*const [2]u8{
-    "a1", "a2", "a3", "a4", "a5", "a6", "a7", "a8",
-    "b1", "b2", "b3", "b4", "b5", "b6", "b7", "b8",
-    "c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8",
-    "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8",
-    "e1", "e2", "e3", "e4", "e5", "e6", "e7", "e8",
-    "f1", "f2", "f3", "f4", "f5", "f6", "f7", "f8",
-    "g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8",
-    "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8",
+    "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
+    "a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
+    "a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",
+    "a4", "b4", "c4", "d4", "e4", "f4", "g4", "h4",
+    "a5", "b5", "c5", "d5", "e5", "f5", "g5", "h5",
+    "a6", "b6", "c6", "d6", "e6", "f6", "g6", "h6",
+    "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
+    "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
 
 test "Square fromString and toString" {
@@ -301,12 +307,68 @@ test "Square fromFileAndRank" {
     };
     const testCases: []const testCase = &[_]testCase{
         .{ .f = Square.FileA, .r = Square.Rank1, .exp = Square.A1 },
+        .{ .f = Square.FileA, .r = Square.Rank2, .exp = Square.A2 },
+        .{ .f = Square.FileA, .r = Square.Rank3, .exp = Square.A3 },
+        .{ .f = Square.FileA, .r = Square.Rank4, .exp = Square.A4 },
+        .{ .f = Square.FileA, .r = Square.Rank5, .exp = Square.A5 },
+        .{ .f = Square.FileA, .r = Square.Rank6, .exp = Square.A6 },
+        .{ .f = Square.FileA, .r = Square.Rank7, .exp = Square.A7 },
+        .{ .f = Square.FileA, .r = Square.Rank8, .exp = Square.A8 },
+        .{ .f = Square.FileB, .r = Square.Rank1, .exp = Square.B1 },
         .{ .f = Square.FileB, .r = Square.Rank2, .exp = Square.B2 },
+        .{ .f = Square.FileB, .r = Square.Rank3, .exp = Square.B3 },
+        .{ .f = Square.FileB, .r = Square.Rank4, .exp = Square.B4 },
+        .{ .f = Square.FileB, .r = Square.Rank5, .exp = Square.B5 },
+        .{ .f = Square.FileB, .r = Square.Rank6, .exp = Square.B6 },
+        .{ .f = Square.FileB, .r = Square.Rank7, .exp = Square.B7 },
+        .{ .f = Square.FileB, .r = Square.Rank8, .exp = Square.B8 },
+        .{ .f = Square.FileC, .r = Square.Rank1, .exp = Square.C1 },
+        .{ .f = Square.FileC, .r = Square.Rank2, .exp = Square.C2 },
         .{ .f = Square.FileC, .r = Square.Rank3, .exp = Square.C3 },
+        .{ .f = Square.FileC, .r = Square.Rank4, .exp = Square.C4 },
+        .{ .f = Square.FileC, .r = Square.Rank5, .exp = Square.C5 },
+        .{ .f = Square.FileC, .r = Square.Rank6, .exp = Square.C6 },
+        .{ .f = Square.FileC, .r = Square.Rank7, .exp = Square.C7 },
+        .{ .f = Square.FileC, .r = Square.Rank8, .exp = Square.C8 },
+        .{ .f = Square.FileD, .r = Square.Rank1, .exp = Square.D1 },
+        .{ .f = Square.FileD, .r = Square.Rank2, .exp = Square.D2 },
+        .{ .f = Square.FileD, .r = Square.Rank3, .exp = Square.D3 },
         .{ .f = Square.FileD, .r = Square.Rank4, .exp = Square.D4 },
+        .{ .f = Square.FileD, .r = Square.Rank5, .exp = Square.D5 },
+        .{ .f = Square.FileD, .r = Square.Rank6, .exp = Square.D6 },
+        .{ .f = Square.FileD, .r = Square.Rank7, .exp = Square.D7 },
+        .{ .f = Square.FileD, .r = Square.Rank8, .exp = Square.D8 },
+        .{ .f = Square.FileE, .r = Square.Rank1, .exp = Square.E1 },
+        .{ .f = Square.FileE, .r = Square.Rank2, .exp = Square.E2 },
+        .{ .f = Square.FileE, .r = Square.Rank3, .exp = Square.E3 },
+        .{ .f = Square.FileE, .r = Square.Rank4, .exp = Square.E4 },
         .{ .f = Square.FileE, .r = Square.Rank5, .exp = Square.E5 },
+        .{ .f = Square.FileE, .r = Square.Rank6, .exp = Square.E6 },
+        .{ .f = Square.FileE, .r = Square.Rank7, .exp = Square.E7 },
+        .{ .f = Square.FileE, .r = Square.Rank8, .exp = Square.E8 },
+        .{ .f = Square.FileF, .r = Square.Rank1, .exp = Square.F1 },
+        .{ .f = Square.FileF, .r = Square.Rank2, .exp = Square.F2 },
+        .{ .f = Square.FileF, .r = Square.Rank3, .exp = Square.F3 },
+        .{ .f = Square.FileF, .r = Square.Rank4, .exp = Square.F4 },
+        .{ .f = Square.FileF, .r = Square.Rank5, .exp = Square.F5 },
         .{ .f = Square.FileF, .r = Square.Rank6, .exp = Square.F6 },
+        .{ .f = Square.FileF, .r = Square.Rank7, .exp = Square.F7 },
+        .{ .f = Square.FileF, .r = Square.Rank8, .exp = Square.F8 },
+        .{ .f = Square.FileG, .r = Square.Rank1, .exp = Square.G1 },
+        .{ .f = Square.FileG, .r = Square.Rank2, .exp = Square.G2 },
+        .{ .f = Square.FileG, .r = Square.Rank3, .exp = Square.G3 },
+        .{ .f = Square.FileG, .r = Square.Rank4, .exp = Square.G4 },
+        .{ .f = Square.FileG, .r = Square.Rank5, .exp = Square.G5 },
+        .{ .f = Square.FileG, .r = Square.Rank6, .exp = Square.G6 },
         .{ .f = Square.FileG, .r = Square.Rank7, .exp = Square.G7 },
+        .{ .f = Square.FileG, .r = Square.Rank8, .exp = Square.G8 },
+        .{ .f = Square.FileH, .r = Square.Rank1, .exp = Square.H1 },
+        .{ .f = Square.FileH, .r = Square.Rank2, .exp = Square.H2 },
+        .{ .f = Square.FileH, .r = Square.Rank3, .exp = Square.H3 },
+        .{ .f = Square.FileH, .r = Square.Rank4, .exp = Square.H4 },
+        .{ .f = Square.FileH, .r = Square.Rank5, .exp = Square.H5 },
+        .{ .f = Square.FileH, .r = Square.Rank6, .exp = Square.H6 },
+        .{ .f = Square.FileH, .r = Square.Rank7, .exp = Square.H7 },
         .{ .f = Square.FileH, .r = Square.Rank8, .exp = Square.H8 },
         // Invalid cases
         .{ .f = Square.NoFile, .r = Square.NoRank, .exp = Square.NoSquare },
@@ -323,24 +385,86 @@ test "Square fromFileAndRank" {
 test "Square fromIndex" {
     const testCase = struct {
         index: i8,
+        file: i8,
+        rank: i8,
         exp: i8,
     };
     const testCases: []const testCase = &[_]testCase{
-        .{ .index = 63, .exp = Square.A1 },
-        .{ .index = 55, .exp = Square.B1 },
-        .{ .index = 31, .exp = Square.E1 },
-        .{ .index = 28, .exp = Square.E4 },
-        .{ .index = 7, .exp = Square.H1 },
-        .{ .index = 62, .exp = Square.A2 },
-        .{ .index = 0, .exp = Square.H8 },
+        .{ .index = 0, .file = Square.FileA, .rank = Square.Rank1, .exp = Square.A1 },
+        .{ .index = 1, .file = Square.FileB, .rank = Square.Rank1, .exp = Square.B1 },
+        .{ .index = 2, .file = Square.FileC, .rank = Square.Rank1, .exp = Square.C1 },
+        .{ .index = 3, .file = Square.FileD, .rank = Square.Rank1, .exp = Square.D1 },
+        .{ .index = 4, .file = Square.FileE, .rank = Square.Rank1, .exp = Square.E1 },
+        .{ .index = 5, .file = Square.FileF, .rank = Square.Rank1, .exp = Square.F1 },
+        .{ .index = 6, .file = Square.FileG, .rank = Square.Rank1, .exp = Square.G1 },
+        .{ .index = 7, .file = Square.FileH, .rank = Square.Rank1, .exp = Square.H1 },
+        .{ .index = 8, .file = Square.FileA, .rank = Square.Rank2, .exp = Square.A2 },
+        .{ .index = 9, .file = Square.FileB, .rank = Square.Rank2, .exp = Square.B2 },
+        .{ .index = 10, .file = Square.FileC, .rank = Square.Rank2, .exp = Square.C2 },
+        .{ .index = 11, .file = Square.FileD, .rank = Square.Rank2, .exp = Square.D2 },
+        .{ .index = 12, .file = Square.FileE, .rank = Square.Rank2, .exp = Square.E2 },
+        .{ .index = 13, .file = Square.FileF, .rank = Square.Rank2, .exp = Square.F2 },
+        .{ .index = 14, .file = Square.FileG, .rank = Square.Rank2, .exp = Square.G2 },
+        .{ .index = 15, .file = Square.FileH, .rank = Square.Rank2, .exp = Square.H2 },
+        .{ .index = 16, .file = Square.FileA, .rank = Square.Rank3, .exp = Square.A3 },
+        .{ .index = 17, .file = Square.FileB, .rank = Square.Rank3, .exp = Square.B3 },
+        .{ .index = 18, .file = Square.FileC, .rank = Square.Rank3, .exp = Square.C3 },
+        .{ .index = 19, .file = Square.FileD, .rank = Square.Rank3, .exp = Square.D3 },
+        .{ .index = 20, .file = Square.FileE, .rank = Square.Rank3, .exp = Square.E3 },
+        .{ .index = 21, .file = Square.FileF, .rank = Square.Rank3, .exp = Square.F3 },
+        .{ .index = 22, .file = Square.FileG, .rank = Square.Rank3, .exp = Square.G3 },
+        .{ .index = 23, .file = Square.FileH, .rank = Square.Rank3, .exp = Square.H3 },
+        .{ .index = 24, .file = Square.FileA, .rank = Square.Rank4, .exp = Square.A4 },
+        .{ .index = 25, .file = Square.FileB, .rank = Square.Rank4, .exp = Square.B4 },
+        .{ .index = 26, .file = Square.FileC, .rank = Square.Rank4, .exp = Square.C4 },
+        .{ .index = 27, .file = Square.FileD, .rank = Square.Rank4, .exp = Square.D4 },
+        .{ .index = 28, .file = Square.FileE, .rank = Square.Rank4, .exp = Square.E4 },
+        .{ .index = 29, .file = Square.FileF, .rank = Square.Rank4, .exp = Square.F4 },
+        .{ .index = 30, .file = Square.FileG, .rank = Square.Rank4, .exp = Square.G4 },
+        .{ .index = 31, .file = Square.FileH, .rank = Square.Rank4, .exp = Square.H4 },
+        .{ .index = 32, .file = Square.FileA, .rank = Square.Rank5, .exp = Square.A5 },
+        .{ .index = 33, .file = Square.FileB, .rank = Square.Rank5, .exp = Square.B5 },
+        .{ .index = 34, .file = Square.FileC, .rank = Square.Rank5, .exp = Square.C5 },
+        .{ .index = 35, .file = Square.FileD, .rank = Square.Rank5, .exp = Square.D5 },
+        .{ .index = 36, .file = Square.FileE, .rank = Square.Rank5, .exp = Square.E5 },
+        .{ .index = 37, .file = Square.FileF, .rank = Square.Rank5, .exp = Square.F5 },
+        .{ .index = 38, .file = Square.FileG, .rank = Square.Rank5, .exp = Square.G5 },
+        .{ .index = 39, .file = Square.FileH, .rank = Square.Rank5, .exp = Square.H5 },
+        .{ .index = 40, .file = Square.FileA, .rank = Square.Rank6, .exp = Square.A6 },
+        .{ .index = 41, .file = Square.FileB, .rank = Square.Rank6, .exp = Square.B6 },
+        .{ .index = 42, .file = Square.FileC, .rank = Square.Rank6, .exp = Square.C6 },
+        .{ .index = 43, .file = Square.FileD, .rank = Square.Rank6, .exp = Square.D6 },
+        .{ .index = 44, .file = Square.FileE, .rank = Square.Rank6, .exp = Square.E6 },
+        .{ .index = 45, .file = Square.FileF, .rank = Square.Rank6, .exp = Square.F6 },
+        .{ .index = 46, .file = Square.FileG, .rank = Square.Rank6, .exp = Square.G6 },
+        .{ .index = 47, .file = Square.FileH, .rank = Square.Rank6, .exp = Square.H6 },
+        .{ .index = 48, .file = Square.FileA, .rank = Square.Rank7, .exp = Square.A7 },
+        .{ .index = 49, .file = Square.FileB, .rank = Square.Rank7, .exp = Square.B7 },
+        .{ .index = 50, .file = Square.FileC, .rank = Square.Rank7, .exp = Square.C7 },
+        .{ .index = 51, .file = Square.FileD, .rank = Square.Rank7, .exp = Square.D7 },
+        .{ .index = 52, .file = Square.FileE, .rank = Square.Rank7, .exp = Square.E7 },
+        .{ .index = 53, .file = Square.FileF, .rank = Square.Rank7, .exp = Square.F7 },
+        .{ .index = 54, .file = Square.FileG, .rank = Square.Rank7, .exp = Square.G7 },
+        .{ .index = 55, .file = Square.FileH, .rank = Square.Rank7, .exp = Square.H7 },
+        .{ .index = 56, .file = Square.FileA, .rank = Square.Rank8, .exp = Square.A8 },
+        .{ .index = 57, .file = Square.FileB, .rank = Square.Rank8, .exp = Square.B8 },
+        .{ .index = 58, .file = Square.FileC, .rank = Square.Rank8, .exp = Square.C8 },
+        .{ .index = 59, .file = Square.FileD, .rank = Square.Rank8, .exp = Square.D8 },
+        .{ .index = 60, .file = Square.FileE, .rank = Square.Rank8, .exp = Square.E8 },
+        .{ .index = 61, .file = Square.FileF, .rank = Square.Rank8, .exp = Square.F8 },
+        .{ .index = 62, .file = Square.FileG, .rank = Square.Rank8, .exp = Square.G8 },
+        .{ .index = 63, .file = Square.FileH, .rank = Square.Rank8, .exp = Square.H8 },
+
         // Invalid cases
-        .{ .index = -1, .exp = Square.NoSquare },
-        .{ .index = 64, .exp = Square.NoSquare },
+        .{ .index = -1, .file = Square.NoFile, .rank = Square.NoRank, .exp = Square.NoSquare },
+        .{ .index = 64, .file = Square.NoFile, .rank = Square.NoRank, .exp = Square.NoSquare },
     };
 
     for (testCases) |tc| {
         const s = Square.fromIndex(tc.index);
-        // std.debug.print("Rank and File: {d} {d}\n", .{s.r, s.f});
+        // std.debug.print("Index {d}: rank and file: {d} {d}\n", .{tc.index, s.r, s.f});
         try std.testing.expectEqual(tc.exp, s.s);
+        try std.testing.expectEqual(tc.file, s.f);
+        try std.testing.expectEqual(tc.rank, s.r);
     }
 }

@@ -1,8 +1,7 @@
 const std = @import("std");
 const Square = @import("square.zig").Square;
 const PieceType = @import("piece.zig").PieceType;
-const startFEN = @import("position.zig").startFEN;
-const positionFromFEN = @import("position.zig").positionFromFEN;
+const startFEN = @import("fen.zig").startFEN;
 const Position = @import("position.zig").Position;
 
 /// MoveTag represents a notable consequence of a move.
@@ -19,19 +18,23 @@ pub const Check = @as(MoveTag, 0x0010);
 /// InCheck indicates that the move puts the current player in check and is therefore illegal.
 pub const InCheck = @as(MoveTag, 0x0020);
 
+pub const MoveError = error{
+    InvalidMove,
+};
+
 /// A move is the movement of a piece from one square to another.
 pub const Move = struct {
     parent: ?*Move = null,
     /// Position after the move
-    position: *Position,
+    position: *Position = undefined,
     /// NAG (Numeric Annotation Glyph) for the move, if any. See: https://en.wikipedia.org/wiki/Portable_Game_Notation#Numeric_Annotation_Glyphs
     nag: ?u16 = null,
     /// Main line and variations
-    children: []*Move = &.{},
+    children: []Move = undefined,
     number: u32 = 0,
     tags: MoveTag = 0,
-    s1: Square, // From square
-    s2: Square, // To square
+    s1: Square = Square.None, // From square
+    s2: Square = Square.None, // To square
     promotion: PieceType = PieceType.None,
 
     pub fn toString(self: *const Move) []const u8 {
@@ -44,15 +47,9 @@ pub const Move = struct {
 };
 
 test "Move toString" {
-    var allocator = std.testing.allocator;
-
-    const pos = try positionFromFEN(allocator, startFEN);
-    defer allocator.destroy(pos);
-
     const move = Move{
-        .position = pos,
-        .s1 = Square.fromString("e2"),
-        .s2 = Square.fromString("e4"),
+        .s1 = Square.fromIndex(Square.E2),
+        .s2 = Square.fromIndex(Square.E4),
     };
     try std.testing.expectEqualStrings("e2->e4, p: ", move.toString());
 }

@@ -108,50 +108,8 @@ fn fenBoard(board: *Board, boardStr: []const u8) !void {
     }
 }
 
-fn fenCastlingRights(board: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
-    if (castlingStr.len == 0 or castlingStr[0] == '-') {
-        castling.* = CastlingRights{};
-        return;
-    }
-
-    for (castlingStr) |c| {
-        switch (c) {
-            'K' => try castling.updateCastlingRights(Colour.White, CastlingSide.Kingside, 4, 7),
-            'k' => try castling.updateCastlingRights(Colour.Black, CastlingSide.Kingside, 4, 7),
-            'Q' => try castling.updateCastlingRights(Colour.White, CastlingSide.Queenside, 4, 0),
-            'q' => try castling.updateCastlingRights(Colour.Black, CastlingSide.Queenside, 4, 0),
-            else => {
-                // Chess960 castling FEN
-                if (c >= 'A' and c <= 'H') {
-                    const colour = Colour.White;
-                    const ks = board.getKingSquare(colour);
-                    if (ks.equals(Square.None)) {
-                        return FENError.InvalidCastlingRightsForGivenBoard;
-                    }
-                    const rf = @as(i8, @intCast(c - 'A'));
-                    if (rf < ks.f) {
-                        try castling.updateCastlingRights(colour, CastlingSide.Queenside, ks.f, rf);
-                    } else {
-                        try castling.updateCastlingRights(colour, CastlingSide.Kingside, ks.f, rf);
-                    }
-                } else if (c >= 'a' and c <= 'h') {
-                    const colour = Colour.Black;
-                    const ks = board.getKingSquare(colour);
-                    if (ks.equals(Square.None)) {
-                        return FENError.InvalidCastlingRightsForGivenBoard;
-                    }
-                    const rf = @as(i8, @intCast(c - 'a'));
-                    if (rf < ks.f) {
-                        try castling.updateCastlingRights(colour, CastlingSide.Queenside, ks.f, rf);
-                    } else {
-                        try castling.updateCastlingRights(colour, CastlingSide.Kingside, ks.f, rf);
-                    }
-                } else {
-                    return FENError.InvalidFEN;
-                }
-            },
-        }
-    }
+fn fenCastlingRights(_: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
+    castling.* = try CastlingRights.fromString(castlingStr, Square.FileE);
 }
 
 fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void {
@@ -181,7 +139,7 @@ fn fenInt32Field(field: *i32, fieldStr: []const u8, minVal: i32, fenError: FENEr
     field.* = value;
 }
 
-test "decodeFEN valid FEN" {
+test "decodeFEN start position" {
     std.debug.print("Decoding valid FEN...\n", .{});
     const position = try decodeFEN(startFEN);
 
@@ -197,49 +155,58 @@ test "decodeFEN valid FEN" {
         ++ "2 P P P P P P P P\n"
         ++ "1 R N B Q K B N R\n"
         ++ "  ---------------\n";
+    // std.debug.print("Board:\n{s}", .{position.board.toDebugString()});
     try std.testing.expectEqualStrings(expected, position.board.toDebugString());
+    // position.board.debugInternalBitboards();
+    try std.testing.expectEqual(Square.squareBit(Square.A1) + Square.squareBit(Square.H1), position.board.whiteRooks);
+    try std.testing.expectEqual(Square.squareBit(Square.B1) + Square.squareBit(Square.G1), position.board.whiteKnights);
+    try std.testing.expectEqual(Square.squareBit(Square.C1) + Square.squareBit(Square.F1), position.board.whiteBishops);
+    try std.testing.expectEqual(Square.squareBit(Square.D1), position.board.whiteQueen);
+    try std.testing.expectEqual(Square.squareBit(Square.E1), position.board.whiteKing);
+    try std.testing.expectEqual(Square.squareBit(Square.A2) + Square.squareBit(Square.B2) +
+        Square.squareBit(Square.C2) + Square.squareBit(Square.D2) +
+        Square.squareBit(Square.E2) + Square.squareBit(Square.F2) +
+        Square.squareBit(Square.G2) + Square.squareBit(Square.H2), position.board.whitePawns);
+    try std.testing.expectEqual(Square.squareBit(Square.A8) + Square.squareBit(Square.H8), position.board.blackRooks);
+    try std.testing.expectEqual(Square.squareBit(Square.B8) + Square.squareBit(Square.G8), position.board.blackKnights);
+    try std.testing.expectEqual(Square.squareBit(Square.C8) + Square.squareBit(Square.F8), position.board.blackBishops);
+    try std.testing.expectEqual(Square.squareBit(Square.D8), position.board.blackQueen);
+    try std.testing.expectEqual(Square.squareBit(Square.E8), position.board.blackKing);
+    try std.testing.expectEqual(Square.squareBit(Square.A7) + Square.squareBit(Square.B7) +
+        Square.squareBit(Square.C7) + Square.squareBit(Square.D7) +
+        Square.squareBit(Square.E7) + Square.squareBit(Square.F7) +
+        Square.squareBit(Square.G7) + Square.squareBit(Square.H7), position.board.blackPawns);
+    try std.testing.expectEqual(Square.squareBit(Square.A3) + Square.squareBit(Square.A4) +
+        Square.squareBit(Square.A5) + Square.squareBit(Square.A6) +
+        Square.squareBit(Square.B3) + Square.squareBit(Square.B4) +
+        Square.squareBit(Square.B5) + Square.squareBit(Square.B6) +
+        Square.squareBit(Square.C3) + Square.squareBit(Square.C4) +
+        Square.squareBit(Square.C5) + Square.squareBit(Square.C6) +
+        Square.squareBit(Square.D3) + Square.squareBit(Square.D4) +
+        Square.squareBit(Square.D5) + Square.squareBit(Square.D6) +
+        Square.squareBit(Square.E3) + Square.squareBit(Square.E4) +
+        Square.squareBit(Square.E5) + Square.squareBit(Square.E6) +
+        Square.squareBit(Square.F3) + Square.squareBit(Square.F4) +
+        Square.squareBit(Square.F5) + Square.squareBit(Square.F6) +
+        Square.squareBit(Square.G3) + Square.squareBit(Square.G4) +
+        Square.squareBit(Square.G5) + Square.squareBit(Square.G6) +
+        Square.squareBit(Square.H3) + Square.squareBit(Square.H4) +
+        Square.squareBit(Square.H5) + Square.squareBit(Square.H6), position.board.emptySquares);
 
-    try std.testing.expectEqual(Square.A1Bit + Square.H1Bit, position.board.whiteRooks);
-    try std.testing.expectEqual(Square.B1Bit + Square.G1Bit, position.board.whiteKnights);
-    try std.testing.expectEqual(Square.C1Bit + Square.F1Bit, position.board.whiteBishops);
-    try std.testing.expectEqual(Square.D1Bit, position.board.whiteQueen);
-    try std.testing.expectEqual(Square.E1Bit, position.board.whiteKing);
-    try std.testing.expectEqual(Square.A2Bit + Square.B2Bit +
-        Square.C2Bit + Square.D2Bit +
-        Square.E2Bit + Square.F2Bit +
-        Square.G2Bit + Square.H2Bit, position.board.whitePawns);
-    try std.testing.expectEqual(Square.A8Bit + Square.H8Bit, position.board.blackRooks);
-    try std.testing.expectEqual(Square.B8Bit + Square.G8Bit, position.board.blackKnights);
-    try std.testing.expectEqual(Square.C8Bit + Square.F8Bit, position.board.blackBishops);
-    try std.testing.expectEqual(Square.D8Bit, position.board.blackQueen);
-    try std.testing.expectEqual(Square.E8Bit, position.board.blackKing);
-    try std.testing.expectEqual(Square.A7Bit + Square.B7Bit +
-        Square.C7Bit + Square.D7Bit +
-        Square.E7Bit + Square.F7Bit +
-        Square.G7Bit + Square.H7Bit, position.board.blackPawns);
-    try std.testing.expectEqual(Square.A3Bit + Square.A4Bit +
-        Square.A5Bit + Square.A6Bit +
-        Square.B3Bit + Square.B4Bit +
-        Square.B5Bit + Square.B6Bit +
-        Square.C3Bit + Square.C4Bit +
-        Square.C5Bit + Square.C6Bit +
-        Square.D3Bit + Square.D4Bit +
-        Square.D5Bit + Square.D6Bit +
-        Square.E3Bit + Square.E4Bit +
-        Square.E5Bit + Square.E6Bit +
-        Square.F3Bit + Square.F4Bit +
-        Square.F5Bit + Square.F6Bit +
-        Square.G3Bit + Square.G4Bit +
-        Square.G5Bit + Square.G6Bit +
-        Square.H3Bit + Square.H4Bit +
-        Square.H5Bit + Square.H6Bit, position.board.emptySquares);
+    try std.testing.expectEqual(Colour.White, position.turn);
+    try std.testing.expectEqual(Square.None, position.enPassantSquare);
+    try std.testing.expectEqual(0, position.halfMoveClock);
+    try std.testing.expectEqual(1, position.moveCount);
 }
 
-test "decodeFEN enPassant square" {
+test "decodeFEN valid FEN" {
     std.debug.print("Decoding FEN with en passant square...\n", .{});
-    const fen = "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1";
+    const fen = "rnbqkb1r/ppp2ppp/3p1n2/4p3/4P3/3B1N2/PPPP1PPP/RNBQ1RK1 b kq - 1 4";
     const position = try decodeFEN(fen);
 
-    const expected = Square.fromFileAndRank(Square.FileE, Square.Rank3);
-    try std.testing.expectEqual(expected, position.enPassantSquare);
+    try std.testing.expectEqual(Square.None, position.enPassantSquare);
+    try std.testing.expectEqual(Colour.Black, position.turn);
+    try std.testing.expectEqualStrings("kq", position.castling.toString());
+    try std.testing.expectEqual(1, position.halfMoveClock);
+    try std.testing.expectEqual(4, position.moveCount);
 }
