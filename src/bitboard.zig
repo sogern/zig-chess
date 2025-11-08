@@ -372,7 +372,8 @@ test "Generate diagonals" {
     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
     // Diagonals from lower left to upper right, including the starting square.
-    for (0..8) |offset| {
+    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+    for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
         try move_offsets.append(alloc, .{ o, o }); // up-right
         try move_offsets.append(alloc, .{ -o, -o }); // down-left
@@ -388,7 +389,8 @@ test "Generate anti-diagonals" {
     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
     // Diagonals from upper left to lower right, including the starting square.
-    for (0..8) |offset| {
+    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+    for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
         try move_offsets.append(alloc, .{ o, -o }); // up-left
         try move_offsets.append(alloc, .{ -o, o }); // down-right
@@ -416,7 +418,7 @@ test "Generate knight moves" {
 
 test "Generate bishop moves" {
     const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8 * 4);
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 4);
 
     // A bishop moves diagonally any number of squares.
     // Without board boundaries, a bishop has up to 32 possible moves from any square.
