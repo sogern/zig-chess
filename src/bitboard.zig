@@ -45,7 +45,6 @@ const bbDiagonals = [_]bitboard{
     0x0402010000000000, // F1 (f1-h3 diagonal)
     0x0201000000000000, // G1 (g1-h2 diagonal)
     0x0100000000000000, // H1 (h1-h1 diagonal)
-
     0x0080402010080402, // A2 (a2-g7 diagonal)
     0x8040201008040201, // B2 (a1-h8 diagonal)
     0x4020100804020100, // C2 (b1-h7 diagonal)
@@ -54,7 +53,6 @@ const bbDiagonals = [_]bitboard{
     0x0804020100000000, // F2 (e1-h4 diagonal)
     0x0402010000000000, // G2 (f1-h3 diagonal)
     0x0201000000000000, // H2 (g1-h2 diagonal)
-
     0x0000804020100804, // A3 (a3-f8 diagonal)
     0x0080402010080402, // B3 (a2-g8 diagonal)
     0x8040201008040201, // C3 (a1-h8 diagonal)
@@ -63,7 +61,6 @@ const bbDiagonals = [_]bitboard{
     0x1008040201000000, // F3 (d1-h5 diagonal)
     0x0804020100000000, // G3 (e1-h4 diagonal)
     0x0402010000000000, // H3 (f1-h3 diagonal)
-
     0x0000008040201008, // A4 (a4-e8 diagonal)
     0x0000804020100804, // B4 (a3-f8 diagonal)
     0x0080402010080402, // C4 (a2-g8 diagonal)
@@ -72,7 +69,6 @@ const bbDiagonals = [_]bitboard{
     0x2010080402010000, // F4 (c1-h6 diagonal)
     0x1008040201000000, // G4 (d1-h5 diagonal)
     0x0804020100000000, // H4 (e1-h4 diagonal)
-
     0x0000000080402010, // A5 (a5-d8 diagonal)
     0x0000008040201008, // B5 (a4-e8 diagonal)
     0x0000804020100804, // C5 (a3-f8 diagonal)
@@ -81,7 +77,6 @@ const bbDiagonals = [_]bitboard{
     0x4020100804020100, // F5 (b1-h7 diagonal)
     0x2010080402010000, // G5 (c1-h6 diagonal)
     0x1008040201000000, // H5 (d1-h5 diagonal)
-
     0x0000000000804020, // A6 (a6-c8 diagonal)
     0x0000000080402010, // B6 (a5-d8 diagonal)
     0x0000008040201008, // C6 (a4-e8 diagonal)
@@ -90,7 +85,6 @@ const bbDiagonals = [_]bitboard{
     0x8040201008040201, // F6 (a1-h8 diagonal)
     0x4020100804020100, // G6 (b1-h7 diagonal)
     0x2010080402010000, // H6 (c1-h6 diagonal)
-
     0x0000000000008040, // A7 (a7-b8 diagonal)
     0x0000000000804020, // B7 (a6-c8 diagonal)
     0x0000000080402010, // C7 (a5-d8 diagonal)
@@ -99,7 +93,6 @@ const bbDiagonals = [_]bitboard{
     0x0080402010080402, // F7 (a2-g8 diagonal)
     0x8040201008040201, // G7 (a1-h8 diagonal)
     0x4020100804020100, // H7 (b1-h7 diagonal)
-
     0x0000000000000080, // A8 (a8-a8 diagonal)
     0x0000000000008040, // B8 (a7-b8 diagonal)
     0x0000000000804020, // C8 (a6-c8 diagonal)
@@ -120,7 +113,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0408102040800000, // F1 (f1-a6 diagonal)
     0x0204081020408000, // G1 (g1-a7 diagonal)
     0x0102040810204080, // H1 (h1-a8 diagonal)
-
     0x4080000000000000, // A2 (b1-a2 diagonal)
     0x2040800000000000, // B2 (c1-a3 diagonal)
     0x1020408000000000, // C2 (d1-a4 diagonal)
@@ -129,7 +121,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0204081020408000, // F2 (g1-a7 diagonal)
     0x0102040810204080, // G2 (h1-a8 diagonal)
     0x0001020408102040, // H2 (h2-b8 diagonal)
-
     0x2040800000000000, // A3 (c1-a3 diagonal)
     0x1020408000000000, // B3 (d1-a4 diagonal)
     0x0810204080000000, // C3 (e1-a5 diagonal)
@@ -138,7 +129,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0102040810204080, // F3 (h1-a8 diagonal)
     0x0001020408102040, // G3 (h2-b8 diagonal)
     0x0000010204081020, // H3 (h3-c8 diagonal)
-
     0x1020408000000000, // A4 (d1-a4 diagonal)
     0x0810204080000000, // B4 (e1-a5 diagonal)
     0x0408102040800000, // C4 (f1-a6 diagonal)
@@ -147,7 +137,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0001020408102040, // F4 (h2-b8 diagonal)
     0x0000010204081020, // G4 (h3-c8 diagonal)
     0x0000000102040810, // H4 (h4-d8 diagonal)
-
     0x0810204080000000, // A5 (e1-a5 diagonal)
     0x0408102040800000, // B5 (f1-a6 diagonal)
     0x0204081020408000, // C5 (g1-a7 diagonal)
@@ -156,7 +145,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0000010204081020, // F5 (h3-c8 diagonal)
     0x0000000102040810, // G5 (h4-d8 diagonal)
     0x0000000001020408, // H5 (h5-e8 diagonal)
-
     0x0408102040800000, // A6 (f1-a6 diagonal)
     0x0204081020408000, // B6 (g1-a7 diagonal)
     0x0102040810204080, // C6 (h1-a8 diagonal)
@@ -165,7 +153,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0000000102040810, // F6 (h4-d8 diagonal)
     0x0000000001020408, // G6 (h5-e8 diagonal)
     0x0000000000010204, // H6 (h6-f8 diagonal)
-
     0x0204081020408000, // A7 (g1-a7 diagonal)
     0x0102040810204080, // B7 (h1-a8 diagonal)
     0x0001020408102040, // C7 (h2-b8 diagonal)
@@ -174,7 +161,6 @@ const bbAntiDiagonals = [_]bitboard{
     0x0000000001020408, // F7 (h5-e8 diagonal)
     0x0000000000010204, // G7 (h6-f8 diagonal)
     0x0000000000000102, // H7 (h7-g8 diagonal)
-
     0x0102040810204080, // A8 (h1-a8 diagonal)
     0x0001020408102040, // B8 (h2-b8 diagonal)
     0x0000010204081020, // C8 (h3-c8 diagonal)
@@ -186,140 +172,91 @@ const bbAntiDiagonals = [_]bitboard{
 };
 
 const bbKnightMoves = [_]bitboard{
-    0x0000000000000000, // A1
-    0x0000000000000000, // B1
-    0x0000000000000000, // C1
-    0x0000000000000000, // D1
-    0x0000000000000000, // E1
-    0x0000000000000000, // F1
-    0x0000000000000000, // G1
-    0x0000000000000000, // H1
-
-    0x0000000000000000, // A2
-    0x0000000000000000, // B2
-    0x0000000000000000, // C2
-    0x0000000000000000, // D2
-    0x0000000000000000, // E2
-    0x0000000000000000, // F2
-    0x0000000000000000, // G2
-    0x0000000000000000, // H2
-
-    0x0000000000000000, // A3
-    0x0000000000000000, // B3
-    0x0000000000000000, // C3
-    0x0000000000000000, // D3
-    0x0000000000000000, // E3
-    0x0000000000000000, // F3
-    0x0000000000000000, // G3
-    0x0000000000000000, // H3
-
-    0x0000000000000000, // A4
-    0x0000000000000000, // B4
-    0x0000000000000000, // C4
-    0x0000000000000000, // D4
-    0x0000000000000000, // E4
-    0x0000000000000000, // F4
-    0x0000000000000000, // G4
-    0x0000000000000000, // H4
-
-    0x0000000000000000, // A5
-    0x0000000000000000, // B5
-    0x0000000000000000, // C5
-    0x0000000000000000, // D5
-    0x0000000000000000, // E5
-    0x0000000000000000, // F5
-    0x0000000000000000, // G5
-    0x0000000000000000, // H5
-
-    0x0000000000000000, // A6
-    0x0000000000000000, // B6
-    0x0000000000000000, // C6
-    0x0000000000000000, // D6
-    0x0000000000000000, // E6
-    0x0000000000000000, // F6
-    0x0000000000000000, // G6
-    0x0000000000000000, // H6
-
-    0x0000000000000000, // A7
-    0x0000000000000000, // B7
-    0x0000000000000000, // C7
-    0x0000000000000000, // D7
-    0x0000000000000000, // E7
-    0x0000000000000000, // F7
-    0x0000000000000000, // G7
-    0x0000000000000000, // H7
-
-    0x0000000000000000, // A8
-    0x0000000000000000, // B8
-    0x0000000000000000, // C8
-    0x0000000000000000, // D8
-    0x0000000000000000, // E8
-    0x0000000000000000, // F8
-    0x0000000000000000, // G8
-    0x0000000000000000, // H8
+    0x0020400000000000, // a1
+    0x0010a00000000000, // b1
+    0x0088500000000000, // c1
+    0x0044280000000000, // d1
+    0x0022140000000000, // e1
+    0x00110a0000000000, // f1
+    0x0008050000000000, // g1
+    0x0004020000000000, // h1
+    0x2000204000000000, // a2
+    0x100010a000000000, // b2
+    0x8800885000000000, // c2
+    0x4400442800000000, // d2
+    0x2200221400000000, // e2
+    0x1100110a00000000, // f2
+    0x0800080500000000, // g2
+    0x0400040200000000, // h2
+    0x4020002040000000, // a3
+    0xa0100010a0000000, // b3
+    0x5088008850000000, // c3
+    0x2844004428000000, // d3
+    0x1422002214000000, // e3
+    0x0a1100110a000000, // f3
+    0x0508000805000000, // g3
+    0x0204000402000000, // h3
+    0x0040200020400000, // a4
+    0x00a0100010a00000, // b4
+    0x0050880088500000, // c4
+    0x0028440044280000, // d4
+    0x0014220022140000, // e4
+    0x000a1100110a0000, // f4
+    0x0005080008050000, // g4
+    0x0002040004020000, // h4
+    0x0000402000204000, // a5
+    0x0000a0100010a000, // b5
+    0x0000508800885000, // c5
+    0x0000284400442800, // d5
+    0x0000142200221400, // e5
+    0x00000a1100110a00, // f5
+    0x0000050800080500, // g5
+    0x0000020400040200, // h5
+    0x0000004020002040, // a6
+    0x000000a0100010a0, // b6
+    0x0000005088008850, // c6
+    0x0000002844004428, // d6
+    0x0000001422002214, // e6
+    0x0000000a1100110a, // f6
+    0x0000000508000805, // g6
+    0x0000000204000402, // h6
+    0x0000000040200020, // a7
+    0x00000000a0100010, // b7
+    0x0000000050880088, // c7
+    0x0000000050880088, // c7
+    0x0000000028440044, // d7
+    0x0000000028440044, // d7
+    0x0000000014220022, // e7
+    0x0000000014220022, // e7
+    0x000000000a110011, // f7
+    0x0000000005080008, // g7
+    0x0000000002040004, // h7
+    0x0000000000402000, // a8
+    0x0000000000a01000, // b8
+    0x0000000000a01000, // b8
+    0x0000000000508800, // c8
+    0x0000000000284400, // d8
+    0x0000000000142200, // e8
+    0x00000000000a1100, // f8
+    0x0000000000050800, // g8
+    0x0000000000020400, // h8
 };
 
-test "Generate knight moves" {
-    const alloc = std.heap.page_allocator;
+const pieceMove = struct {
+    from_square: [2]u8,
+    to_squares: [][2]u8,
+};
 
-    const knightMove = struct {
-        from_square: []const u8,
-        to_squares: [][]const u8,
-    };
-
-    var kms = std.ArrayList(knightMove).initCapacity(alloc, 8) catch unreachable;
-
-    // A knight can move in an "L" shape: two squares in one direction and then one square perpendicular.
-    // Without board boundaries, a knight has up to 8 possible moves from any square.
-    const files = "abcdefgh";
-    const ranks = "12345678";
-    const piece_moves: [8][2]i8 = .{
-        .{2, 1}, .{2, -1}, .{-2, 1}, .{-2, -1},
-        .{1, 2}, .{1, -2}, .{-1, 2}, .{-1, -2},
-    };
-    for (ranks) |rank_char| {
-        const rank_idx = @as(i8, @intCast(rank_char - '1'));
-        for (files) |file_char| {
-            const f_idx = @as(i8, @intCast(file_char - 'a'));
-            var from_square = [_]u8{file_char, rank_char};
-            var to_squares = std.ArrayList([2]u8).initCapacity(alloc, 8) catch unreachable;
-            for (piece_moves) |move| {
-                const new_file = f_idx + move[0];
-                const new_rank = rank_idx + move[1];
-                if (new_file >= 0 and new_file < 8 and new_rank >= 0 and new_rank < 8) {
-                    const to_file_char = @as(u8, @intCast(new_file + 'a'));
-                    const to_rank_char = @as(u8, @intCast(new_rank + '1'));
-                    const to_square = [_]u8{to_file_char, to_rank_char};
-                    to_squares.appendSlice(alloc, &to_square) catch unreachable;
-                }
-            }
-            kms.appendSlice(alloc, knightMove{
-                .from_square = from_square[0..],
-                .to_squares = to_squares.items,
-            });
-        }
-    }
-
-    // const knightMoves = []knightMove;
-    // const kms: []knightMove = try std.zon.parse.fromSlice(
-    //     knightMoves,
-    //     std.heap.page_allocator,
-    //     @embedFile("data/knightMoves.zon"),
-    //     null,
-    //     .{}
-    // );
-
-    std.debug.print("Knight moves:\n", .{});
-
-    for (kms) |km| {
-        const fs = Square.fromString(km.from_square);
+fn printPieceMoves(moves: []pieceMove) void {
+    for (moves) |km| {
+        const fs = Square.fromString(km.from_square[0..]);
         if (fs.equals(Square.None)) {
             std.debug.print("Invalid from square: {s}\n", .{km.from_square});
             return;
         }
         var bb: bitboard = 0;
         for (km.to_squares) |to_square| {
-            const ts = Square.fromString(to_square);
+            const ts = Square.fromString(to_square[0..]);
             if (ts.equals(Square.None)) {
                 std.debug.print("Invalid to square: {s}\n", .{to_square});
                 return;
@@ -327,6 +264,54 @@ test "Generate knight moves" {
             bb |= Square.squareBit(@as(usize, @intCast(ts.s)));
         }
 
-        std.debug.print("0x{x:0>16}, // {s}\n", .{bb, fs.toString()});
+        std.debug.print("0x{x:0>16}, // {s}\n", .{ bb, fs.toString() });
     }
+}
+
+fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove {
+    const alloc = std.heap.page_allocator;
+    var moves = try std.ArrayList(pieceMove).initCapacity(alloc, init_capacity);
+
+    const files = "abcdefgh";
+    const ranks = "12345678";
+
+    for (ranks) |rank_char| {
+        const rank_idx = @as(i8, @intCast(rank_char - '1'));
+        for (files) |file_char| {
+            const f_idx = @as(i8, @intCast(file_char - 'a'));
+            const from_square = [_]u8{ file_char, rank_char };
+            var to_squares = try std.ArrayList([2]u8).initCapacity(alloc, init_capacity);
+            for (move_offsets) |move| {
+                const f = f_idx + move[0];
+                const r = rank_idx + move[1];
+                if (f >= 0 and f < 8 and r >= 0 and r < 8) {
+                    const to_square = [_]u8{ @as(u8, @intCast(f + 'a')), @as(u8, @intCast(r + '1')) };
+                    try to_squares.append(alloc, to_square);
+                }
+            }
+            const ts = try to_squares.toOwnedSlice(alloc);
+            try moves.append(alloc, pieceMove{
+                .from_square = from_square,
+                .to_squares = ts,
+            });
+        }
+    }
+
+    return try moves.toOwnedSlice(alloc);
+}
+
+test "Generate knight moves" {
+    const alloc = std.heap.page_allocator;
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
+
+    // A knight moves in an "L" shape: two squares in one direction and then one square perpendicular.
+    // Without board boundaries, a knight has up to 8 possible moves from any square.
+    try move_offsets.appendSlice(alloc, &[_][2]i8{
+        .{ 2, 1 }, .{ 2, -1 }, .{ -2, 1 }, .{ -2, -1 },
+        .{ 1, 2 }, .{ 1, -2 }, .{ -1, 2 }, .{ -1, -2 },
+    });
+    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 8);
+
+    std.debug.print("Knight moves:\n", .{});
+    printPieceMoves(moves);
 }
