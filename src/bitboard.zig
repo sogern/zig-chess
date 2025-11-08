@@ -35,6 +35,28 @@ const bbRank8: bitboard = 0x00000000000000FF;
 // 2 . . . . . . . .
 // 1 . . . . . . . . MSB byte (A1)
 
+const bbFiles = [_]bitboard{
+    bbFileA,
+    bbFileB,
+    bbFileC,
+    bbFileD,
+    bbFileE,
+    bbFileF,
+    bbFileG,
+    bbFileH,
+};
+
+const bbRanks = [_]bitboard{
+    bbRank1,
+    bbRank2,
+    bbRank3,
+    bbRank4,
+    bbRank5,
+    bbRank6,
+    bbRank7,
+    bbRank8,
+};
+
 const bbDiagonals = [_]bitboard{
     // Diagonals from lower left to upper right
     0x8040201008040201, // a1
