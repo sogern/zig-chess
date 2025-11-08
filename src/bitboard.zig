@@ -36,139 +36,139 @@ const bbRank8: bitboard = 0x00000000000000FF;
 // 1 . . . . . . . . MSB byte (A1)
 
 const bbDiagonals = [_]bitboard{
-    // Diagonals from left to right
-    0x8040201008040201, // A1 (a1-h8 diagonal)
-    0x4020100804020100, // B1 (b1-h7 diagonal)
-    0x2010080402010000, // C1 (c1-h6 diagonal)
-    0x1008040201000000, // D1 (d1-h5 diagonal)
-    0x0804020100000000, // E1 (e1-h4 diagonal)
-    0x0402010000000000, // F1 (f1-h3 diagonal)
-    0x0201000000000000, // G1 (g1-h2 diagonal)
-    0x0100000000000000, // H1 (h1-h1 diagonal)
-    0x0080402010080402, // A2 (a2-g7 diagonal)
-    0x8040201008040201, // B2 (a1-h8 diagonal)
-    0x4020100804020100, // C2 (b1-h7 diagonal)
-    0x2010080402010000, // D2 (c1-h6 diagonal)
-    0x1008040201000000, // E2 (d1-h5 diagonal)
-    0x0804020100000000, // F2 (e1-h4 diagonal)
-    0x0402010000000000, // G2 (f1-h3 diagonal)
-    0x0201000000000000, // H2 (g1-h2 diagonal)
-    0x0000804020100804, // A3 (a3-f8 diagonal)
-    0x0080402010080402, // B3 (a2-g8 diagonal)
-    0x8040201008040201, // C3 (a1-h8 diagonal)
-    0x4020100804020100, // D3 (b1-h7 diagonal)
-    0x2010080402010000, // E3 (c1-h6 diagonal)
-    0x1008040201000000, // F3 (d1-h5 diagonal)
-    0x0804020100000000, // G3 (e1-h4 diagonal)
-    0x0402010000000000, // H3 (f1-h3 diagonal)
-    0x0000008040201008, // A4 (a4-e8 diagonal)
-    0x0000804020100804, // B4 (a3-f8 diagonal)
-    0x0080402010080402, // C4 (a2-g8 diagonal)
-    0x8040201008040201, // D4 (a1-h8 diagonal)
-    0x4020100804020100, // E4 (b1-h7 diagonal)
-    0x2010080402010000, // F4 (c1-h6 diagonal)
-    0x1008040201000000, // G4 (d1-h5 diagonal)
-    0x0804020100000000, // H4 (e1-h4 diagonal)
-    0x0000000080402010, // A5 (a5-d8 diagonal)
-    0x0000008040201008, // B5 (a4-e8 diagonal)
-    0x0000804020100804, // C5 (a3-f8 diagonal)
-    0x0080402010080402, // D5 (a2-g8 diagonal)
-    0x8040201008040201, // E5 (a1-h8 diagonal)
-    0x4020100804020100, // F5 (b1-h7 diagonal)
-    0x2010080402010000, // G5 (c1-h6 diagonal)
-    0x1008040201000000, // H5 (d1-h5 diagonal)
-    0x0000000000804020, // A6 (a6-c8 diagonal)
-    0x0000000080402010, // B6 (a5-d8 diagonal)
-    0x0000008040201008, // C6 (a4-e8 diagonal)
-    0x0000804020100804, // D6 (a3-f8 diagonal)
-    0x0080402010080402, // E6 (a2-g8 diagonal)
-    0x8040201008040201, // F6 (a1-h8 diagonal)
-    0x4020100804020100, // G6 (b1-h7 diagonal)
-    0x2010080402010000, // H6 (c1-h6 diagonal)
-    0x0000000000008040, // A7 (a7-b8 diagonal)
-    0x0000000000804020, // B7 (a6-c8 diagonal)
-    0x0000000080402010, // C7 (a5-d8 diagonal)
-    0x0000008040201008, // D7 (a4-e8 diagonal)
-    0x0000804020100804, // E7 (a3-f8 diagonal)
-    0x0080402010080402, // F7 (a2-g8 diagonal)
-    0x8040201008040201, // G7 (a1-h8 diagonal)
-    0x4020100804020100, // H7 (b1-h7 diagonal)
-    0x0000000000000080, // A8 (a8-a8 diagonal)
-    0x0000000000008040, // B8 (a7-b8 diagonal)
-    0x0000000000804020, // C8 (a6-c8 diagonal)
-    0x0000000080402010, // D8 (a5-d8 diagonal)
-    0x0000008040201008, // E8 (a4-e8 diagonal)
-    0x0000804020100804, // F8 (a3-f8 diagonal)
-    0x0080402010080402, // G8 (a2-g8 diagonal)
-    0x8040201008040201, // H8 (a1-h8 diagonal)
+    // Diagonals from lower left to upper right
+    0x8040201008040201, // a1
+    0x4020100804020100, // b1
+    0x2010080402010000, // c1
+    0x1008040201000000, // d1
+    0x0804020100000000, // e1
+    0x0402010000000000, // f1
+    0x0201000000000000, // g1
+    0x0100000000000000, // h1
+    0x0080402010080402, // a2
+    0x8040201008040201, // b2
+    0x4020100804020100, // c2
+    0x2010080402010000, // d2
+    0x1008040201000000, // e2
+    0x0804020100000000, // f2
+    0x0402010000000000, // g2
+    0x0201000000000000, // h2
+    0x0000804020100804, // a3
+    0x0080402010080402, // b3
+    0x8040201008040201, // c3
+    0x4020100804020100, // d3
+    0x2010080402010000, // e3
+    0x1008040201000000, // f3
+    0x0804020100000000, // g3
+    0x0402010000000000, // h3
+    0x0000008040201008, // a4
+    0x0000804020100804, // b4
+    0x0080402010080402, // c4
+    0x8040201008040201, // d4
+    0x4020100804020100, // e4
+    0x2010080402010000, // f4
+    0x1008040201000000, // g4
+    0x0804020100000000, // h4
+    0x0000000080402010, // a5
+    0x0000008040201008, // b5
+    0x0000804020100804, // c5
+    0x0080402010080402, // d5
+    0x8040201008040201, // e5
+    0x4020100804020100, // f5
+    0x2010080402010000, // g5
+    0x1008040201000000, // h5
+    0x0000000000804020, // a6
+    0x0000000080402010, // b6
+    0x0000008040201008, // c6
+    0x0000804020100804, // d6
+    0x0080402010080402, // e6
+    0x8040201008040201, // f6
+    0x4020100804020100, // g6
+    0x2010080402010000, // h6
+    0x0000000000008040, // a7
+    0x0000000000804020, // b7
+    0x0000000080402010, // c7
+    0x0000008040201008, // d7
+    0x0000804020100804, // e7
+    0x0080402010080402, // f7
+    0x8040201008040201, // g7
+    0x4020100804020100, // h7
+    0x0000000000000080, // a8
+    0x0000000000008040, // b8
+    0x0000000000804020, // c8
+    0x0000000080402010, // d8
+    0x0000008040201008, // e8
+    0x0000804020100804, // f8
+    0x0080402010080402, // g8
+    0x8040201008040201, // h8
 };
 
 const bbAntiDiagonals = [_]bitboard{
-    // Diagonals from right to left
-    0x8000000000000000, // A1 (a1-a1 diagonal)
-    0x4080000000000000, // B1 (b1-a2 diagonal)
-    0x2040800000000000, // C1 (c1-a3 diagonal)
-    0x1020408000000000, // D1 (d1-a4 diagonal)
-    0x0810204080000000, // E1 (e1-a5 diagonal)
-    0x0408102040800000, // F1 (f1-a6 diagonal)
-    0x0204081020408000, // G1 (g1-a7 diagonal)
-    0x0102040810204080, // H1 (h1-a8 diagonal)
-    0x4080000000000000, // A2 (b1-a2 diagonal)
-    0x2040800000000000, // B2 (c1-a3 diagonal)
-    0x1020408000000000, // C2 (d1-a4 diagonal)
-    0x0810204080000000, // D2 (e1-a5 diagonal)
-    0x0408102040800000, // E2 (f1-a6 diagonal)
-    0x0204081020408000, // F2 (g1-a7 diagonal)
-    0x0102040810204080, // G2 (h1-a8 diagonal)
-    0x0001020408102040, // H2 (h2-b8 diagonal)
-    0x2040800000000000, // A3 (c1-a3 diagonal)
-    0x1020408000000000, // B3 (d1-a4 diagonal)
-    0x0810204080000000, // C3 (e1-a5 diagonal)
-    0x0408102040800000, // D3 (f1-a6 diagonal)
-    0x0204081020408000, // E3 (g1-a7 diagonal)
-    0x0102040810204080, // F3 (h1-a8 diagonal)
-    0x0001020408102040, // G3 (h2-b8 diagonal)
-    0x0000010204081020, // H3 (h3-c8 diagonal)
-    0x1020408000000000, // A4 (d1-a4 diagonal)
-    0x0810204080000000, // B4 (e1-a5 diagonal)
-    0x0408102040800000, // C4 (f1-a6 diagonal)
-    0x0204081020408000, // D4 (g1-a7 diagonal)
-    0x0102040810204080, // E4 (h1-a8 diagonal)
-    0x0001020408102040, // F4 (h2-b8 diagonal)
-    0x0000010204081020, // G4 (h3-c8 diagonal)
-    0x0000000102040810, // H4 (h4-d8 diagonal)
-    0x0810204080000000, // A5 (e1-a5 diagonal)
-    0x0408102040800000, // B5 (f1-a6 diagonal)
-    0x0204081020408000, // C5 (g1-a7 diagonal)
-    0x0102040810204080, // D5 (h1-a8 diagonal)
-    0x0001020408102040, // E5 (h2-b8 diagonal)
-    0x0000010204081020, // F5 (h3-c8 diagonal)
-    0x0000000102040810, // G5 (h4-d8 diagonal)
-    0x0000000001020408, // H5 (h5-e8 diagonal)
-    0x0408102040800000, // A6 (f1-a6 diagonal)
-    0x0204081020408000, // B6 (g1-a7 diagonal)
-    0x0102040810204080, // C6 (h1-a8 diagonal)
-    0x0001020408102040, // D6 (h2-b8 diagonal)
-    0x0000010204081020, // E6 (h3-c8 diagonal)
-    0x0000000102040810, // F6 (h4-d8 diagonal)
-    0x0000000001020408, // G6 (h5-e8 diagonal)
-    0x0000000000010204, // H6 (h6-f8 diagonal)
-    0x0204081020408000, // A7 (g1-a7 diagonal)
-    0x0102040810204080, // B7 (h1-a8 diagonal)
-    0x0001020408102040, // C7 (h2-b8 diagonal)
-    0x0000010204081020, // D7 (h3-c8 diagonal)
-    0x0000000102040810, // E7 (h4-d8 diagonal)
-    0x0000000001020408, // F7 (h5-e8 diagonal)
-    0x0000000000010204, // G7 (h6-f8 diagonal)
-    0x0000000000000102, // H7 (h7-g8 diagonal)
-    0x0102040810204080, // A8 (h1-a8 diagonal)
-    0x0001020408102040, // B8 (h2-b8 diagonal)
-    0x0000010204081020, // C8 (h3-c8 diagonal)
-    0x0000000102040810, // D8 (h4-d8 diagonal)
-    0x0000000001020408, // E8 (h5-e8 diagonal)
-    0x0000000000010204, // F8 (h6-f8 diagonal)
-    0x0000000000000102, // G8 (h7-g8 diagonal)
-    0x0000000000000001, // H8 (h8-h8 diagonal)
+    // Diagonals from upper left to lower right
+    0x8000000000000000, // a1
+    0x4080000000000000, // b1
+    0x2040800000000000, // c1
+    0x1020408000000000, // d1
+    0x0810204080000000, // e1
+    0x0408102040800000, // f1
+    0x0204081020408000, // g1
+    0x0102040810204080, // h1
+    0x4080000000000000, // a2
+    0x2040800000000000, // b2
+    0x1020408000000000, // c2
+    0x0810204080000000, // d2
+    0x0408102040800000, // e2
+    0x0204081020408000, // f2
+    0x0102040810204080, // g2
+    0x0001020408102040, // h2
+    0x2040800000000000, // a3
+    0x1020408000000000, // b3
+    0x0810204080000000, // c3
+    0x0408102040800000, // d3
+    0x0204081020408000, // e3
+    0x0102040810204080, // f3
+    0x0001020408102040, // g3
+    0x0000010204081020, // h3
+    0x1020408000000000, // a4
+    0x0810204080000000, // b4
+    0x0408102040800000, // c4
+    0x0204081020408000, // d4
+    0x0102040810204080, // e4
+    0x0001020408102040, // f4
+    0x0000010204081020, // g4
+    0x0000000102040810, // h4
+    0x0810204080000000, // a5
+    0x0408102040800000, // b5
+    0x0204081020408000, // c5
+    0x0102040810204080, // d5
+    0x0001020408102040, // e5
+    0x0000010204081020, // f5
+    0x0000000102040810, // g5
+    0x0000000001020408, // h5
+    0x0408102040800000, // a6
+    0x0204081020408000, // b6
+    0x0102040810204080, // c6
+    0x0001020408102040, // d6
+    0x0000010204081020, // e6
+    0x0000000102040810, // f6
+    0x0000000001020408, // g6
+    0x0000000000010204, // h6
+    0x0204081020408000, // a7
+    0x0102040810204080, // b7
+    0x0001020408102040, // c7
+    0x0000010204081020, // d7
+    0x0000000102040810, // e7
+    0x0000000001020408, // f7
+    0x0000000000010204, // g7
+    0x0000000000000102, // h7
+    0x0102040810204080, // a8
+    0x0001020408102040, // b8
+    0x0000010204081020, // c8
+    0x0000000102040810, // d8
+    0x0000000001020408, // e8
+    0x0000000000010204, // f8
+    0x0000000000000102, // g8
+    0x0000000000000001, // h8
 };
 
 const bbKnightMoves = [_]bitboard{
@@ -367,6 +367,38 @@ fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove 
     return try moves.toOwnedSlice(alloc);
 }
 
+test "Generate diagonals" {
+    const alloc = std.heap.page_allocator;
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+
+    // Diagonals from lower left to upper right, including the starting square.
+    for (0..8) |offset| {
+        const o = @as(i8, @intCast(offset));
+        try move_offsets.append(alloc, .{ o, o }); // up-right
+        try move_offsets.append(alloc, .{ -o, -o }); // down-left
+    }
+
+    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+    std.debug.print("Diagonal moves (lower left to upper right):\n", .{});
+    printPieceMoves(moves);
+}
+
+test "Generate anti-diagonals" {
+    const alloc = std.heap.page_allocator;
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+
+    // Diagonals from upper left to lower right, including the starting square.
+    for (0..8) |offset| {
+        const o = @as(i8, @intCast(offset));
+        try move_offsets.append(alloc, .{ o, -o }); // up-left
+        try move_offsets.append(alloc, .{ -o, o }); // down-right
+    }
+
+    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+    std.debug.print("Anti-diagonal moves (upper left to lower right):\n", .{});
+    printPieceMoves(moves);
+}
+
 test "Generate knight moves" {
     const alloc = std.heap.page_allocator;
     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
@@ -387,7 +419,7 @@ test "Generate bishop moves" {
     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8 * 4);
 
     // A bishop moves diagonally any number of squares.
-    // Here we define the maximum offsets in each diagonal direction.
+    // Without board boundaries, a bishop has up to 32 possible moves from any square.
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
         try move_offsets.append(alloc, .{ o, o }); // up-right
