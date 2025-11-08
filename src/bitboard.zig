@@ -598,8 +598,9 @@ test "Generate diagonals" {
     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
-        try move_offsets.append(alloc, .{ o, o }); // up-right
-        try move_offsets.append(alloc, .{ -o, -o }); // down-left
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, o }, .{ -o, -o }, // up-right and down-left
+        });
     }
 
     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
@@ -615,8 +616,9 @@ test "Generate anti-diagonals" {
     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
-        try move_offsets.append(alloc, .{ o, -o }); // up-left
-        try move_offsets.append(alloc, .{ -o, o }); // down-right
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, -o }, .{ -o, o }, // up-left and down-right
+        });
     }
 
     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
@@ -647,10 +649,9 @@ test "Generate bishop moves" {
     // Without board boundaries, a bishop has up to 32 possible moves from any square.
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
-        try move_offsets.append(alloc, .{ o, o }); // up-right
-        try move_offsets.append(alloc, .{ o, -o }); // down-right
-        try move_offsets.append(alloc, .{ -o, o }); // up-left
-        try move_offsets.append(alloc, .{ -o, -o }); // down-left
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
+        });
     }
 
     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 13);
@@ -666,10 +667,9 @@ test "Generate rook moves" {
     // Without board boundaries, a rook has up to 28 possible moves from any square.
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
-        try move_offsets.append(alloc, .{ o, 0 }); // right
-        try move_offsets.append(alloc, .{ -o, 0 }); // left
-        try move_offsets.append(alloc, .{ 0, o }); // up
-        try move_offsets.append(alloc, .{ 0, -o }); // down
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
+        });
     }
 
     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 14);
@@ -685,16 +685,10 @@ test "Generate queen moves" {
     // Without board boundaries, a queen has up to 56 possible moves from any square.
     for (1..8) |offset| {
         const o = @as(i8, @intCast(offset));
-        // Rook-like moves
-        try move_offsets.append(alloc, .{ o, 0 }); // right
-        try move_offsets.append(alloc, .{ -o, 0 }); // left
-        try move_offsets.append(alloc, .{ 0, o }); // up
-        try move_offsets.append(alloc, .{ 0, -o }); // down
-        // Bishop-like moves
-        try move_offsets.append(alloc, .{ o, o }); // up-right
-        try move_offsets.append(alloc, .{ o, -o }); // down-right
-        try move_offsets.append(alloc, .{ -o, o }); // up-left
-        try move_offsets.append(alloc, .{ -o, -o }); // down-left
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
+            .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
+        });
     }
 
     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 27);
