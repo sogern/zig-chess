@@ -590,6 +590,42 @@ fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove 
     return try moves.toOwnedSlice(alloc);
 }
 
+test "Generate files" {
+    const alloc = std.heap.page_allocator;
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+
+    // Vertical moves along the same file, including the starting square.
+    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+    for (1..8) |offset| {
+        const o = @as(i8, @intCast(offset));
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ 0, o }, .{ 0, -o }, // up and down
+        });
+    }
+
+    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+    std.debug.print("File moves:\n", .{});
+    printPieceMoves(moves);
+}
+
+test "Generate ranks" {
+    const alloc = std.heap.page_allocator;
+    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+
+    // Horizontal moves along the same rank, including the starting square.
+    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+    for (1..8) |offset| {
+        const o = @as(i8, @intCast(offset));
+        try move_offsets.appendSlice(alloc, &[_][2]i8{
+            .{ o, 0 }, .{ -o, 0 }, // right and left
+        });
+    }
+
+    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+    std.debug.print("Rank moves:\n", .{});
+    printPieceMoves(moves);
+}
+
 test "Generate diagonals" {
     const alloc = std.heap.page_allocator;
     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
