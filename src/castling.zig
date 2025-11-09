@@ -104,7 +104,7 @@ pub const CastlingRights = packed struct {
     }
 
     pub fn toString(self: CastlingRights) []const u8 {
-        var result: [4]u8 = undefined;
+        var result: [4]u8 = .{ 0, 0, 0, 0 };
         var idx: usize = 0;
 
         // White castling rights
