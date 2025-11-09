@@ -590,159 +590,159 @@ fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove 
     return try moves.toOwnedSlice(alloc);
 }
 
-test "Generate files" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+// test "Generate files" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
-    // Vertical moves along the same file, including the starting square.
-    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ 0, o }, .{ 0, -o }, // up and down
-        });
-    }
+//     // Vertical moves along the same file, including the starting square.
+//     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ 0, o }, .{ 0, -o }, // up and down
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
-    std.debug.print("File moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+//     std.debug.print("File moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate ranks" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+// test "Generate ranks" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
-    // Horizontal moves along the same rank, including the starting square.
-    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, 0 }, .{ -o, 0 }, // right and left
-        });
-    }
+//     // Horizontal moves along the same rank, including the starting square.
+//     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, 0 }, .{ -o, 0 }, // right and left
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
-    std.debug.print("Rank moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+//     std.debug.print("Rank moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate diagonals" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+// test "Generate diagonals" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
-    // Diagonals from lower left to upper right, including the starting square.
-    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, o }, .{ -o, -o }, // up-right and down-left
-        });
-    }
+//     // Diagonals from lower left to upper right, including the starting square.
+//     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, o }, .{ -o, -o }, // up-right and down-left
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
-    std.debug.print("Diagonal moves (lower left to upper right):\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+//     std.debug.print("Diagonal moves (lower left to upper right):\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate anti-diagonals" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
+// test "Generate anti-diagonals" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, (2 * 7) + 1);
 
-    // Diagonals from upper left to lower right, including the starting square.
-    try move_offsets.append(alloc, .{ 0, 0 }); // starting square
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, -o }, .{ -o, o }, // up-left and down-right
-        });
-    }
+//     // Diagonals from upper left to lower right, including the starting square.
+//     try move_offsets.append(alloc, .{ 0, 0 }); // starting square
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, -o }, .{ -o, o }, // up-left and down-right
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
-    std.debug.print("Anti-diagonal moves (upper left to lower right):\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 15);
+//     std.debug.print("Anti-diagonal moves (upper left to lower right):\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate knight moves" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
+// test "Generate knight moves" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
 
-    // A knight moves in an "L" shape: two squares in one direction and then one square perpendicular.
-    // Without board boundaries, a knight has up to 8 possible moves from any square.
-    try move_offsets.appendSlice(alloc, &[_][2]i8{
-        .{ 2, 1 }, .{ 2, -1 }, .{ -2, 1 }, .{ -2, -1 },
-        .{ 1, 2 }, .{ 1, -2 }, .{ -1, 2 }, .{ -1, -2 },
-    });
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 8);
-    std.debug.print("Knight moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     // A knight moves in an "L" shape: two squares in one direction and then one square perpendicular.
+//     // Without board boundaries, a knight has up to 8 possible moves from any square.
+//     try move_offsets.appendSlice(alloc, &[_][2]i8{
+//         .{ 2, 1 }, .{ 2, -1 }, .{ -2, 1 }, .{ -2, -1 },
+//         .{ 1, 2 }, .{ 1, -2 }, .{ -1, 2 }, .{ -1, -2 },
+//     });
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 8);
+//     std.debug.print("Knight moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate bishop moves" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 4);
+// test "Generate bishop moves" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 4);
 
-    // A bishop moves diagonally any number of squares.
-    // Without board boundaries, a bishop has up to 32 possible moves from any square.
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
-        });
-    }
+//     // A bishop moves diagonally any number of squares.
+//     // Without board boundaries, a bishop has up to 32 possible moves from any square.
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 13);
-    std.debug.print("Bishop moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 13);
+//     std.debug.print("Bishop moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate rook moves" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 4);
+// test "Generate rook moves" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 4);
 
-    // A rook moves horizontally or vertically any number of squares.
-    // Without board boundaries, a rook has up to 28 possible moves from any square.
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
-        });
-    }
+//     // A rook moves horizontally or vertically any number of squares.
+//     // Without board boundaries, a rook has up to 28 possible moves from any square.
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 14);
-    std.debug.print("Rook moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 14);
+//     std.debug.print("Rook moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate queen moves" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 8);
+// test "Generate queen moves" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 7 * 8);
 
-    // A queen moves horizontally, vertically, or diagonally any number of squares.
-    // Without board boundaries, a queen has up to 56 possible moves from any square.
-    for (1..8) |offset| {
-        const o = @as(i8, @intCast(offset));
-        try move_offsets.appendSlice(alloc, &[_][2]i8{
-            .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
-            .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
-        });
-    }
+//     // A queen moves horizontally, vertically, or diagonally any number of squares.
+//     // Without board boundaries, a queen has up to 56 possible moves from any square.
+//     for (1..8) |offset| {
+//         const o = @as(i8, @intCast(offset));
+//         try move_offsets.appendSlice(alloc, &[_][2]i8{
+//             .{ o, 0 }, .{ -o, 0 }, .{ 0, o }, .{ 0, -o }, // right, left, up, down
+//             .{ o, o }, .{ o, -o }, .{ -o, o }, .{ -o, -o }, // up-right, down-right, up-left, down-left
+//         });
+//     }
 
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 27);
-    std.debug.print("Queen moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 27);
+//     std.debug.print("Queen moves:\n", .{});
+//     printPieceMoves(moves);
+// }
 
-test "Generate king moves" {
-    const alloc = std.heap.page_allocator;
-    var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
+// test "Generate king moves" {
+//     const alloc = std.heap.page_allocator;
+//     var move_offsets = try std.ArrayList([2]i8).initCapacity(alloc, 8);
 
-    // A king moves one square in any direction.
-    // Without board boundaries, a king has up to 8 possible moves from any square.
-    try move_offsets.appendSlice(alloc, &[_][2]i8{
-        .{ 1, 0 }, .{ -1, 0 }, .{ 0, 1 },  .{ 0, -1 },
-        .{ 1, 1 }, .{ 1, -1 }, .{ -1, 1 }, .{ -1, -1 },
-    });
-    const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 8);
-    std.debug.print("King moves:\n", .{});
-    printPieceMoves(moves);
-}
+//     // A king moves one square in any direction.
+//     // Without board boundaries, a king has up to 8 possible moves from any square.
+//     try move_offsets.appendSlice(alloc, &[_][2]i8{
+//         .{ 1, 0 }, .{ -1, 0 }, .{ 0, 1 },  .{ 0, -1 },
+//         .{ 1, 1 }, .{ 1, -1 }, .{ -1, 1 }, .{ -1, -1 },
+//     });
+//     const moves = try generatePieceMoves(try move_offsets.toOwnedSlice(alloc), 8);
+//     std.debug.print("King moves:\n", .{});
+//     printPieceMoves(moves);
+// }
