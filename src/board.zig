@@ -22,8 +22,8 @@ pub const Board = packed struct {
     blackBishops: bitboard = 0,
     blackKnights: bitboard = 0,
     blackPawns: bitboard = 0,
-    whiteSquares: bitboard = 0,  // all white pieces
-    blackSquares: bitboard = 0,  // all black pieces
+    whiteSquares: bitboard = 0, // all white pieces
+    blackSquares: bitboard = 0, // all black pieces
     emptySquares: bitboard = 0xFFFFFFFFFFFFFFFF,
 
     pub fn getBBForPiece(self: *Board, piece: Piece) !bitboard {
@@ -146,7 +146,7 @@ pub const Board = packed struct {
     }
 
     pub fn getKingSquare(self: Board, colour: Colour) Square {
-        return switch(colour) {
+        return switch (colour) {
             .None => .None,
             .White => {
                 if (self.whiteKing == 0) return Square.None;
@@ -161,7 +161,7 @@ pub const Board = packed struct {
         };
     }
 
-    /// Draw returns a string representation of the board.
+    /// draw returns a string representation of the board.
     pub fn draw(self: Board) []const u8 {
         const alloc = std.heap.page_allocator;
         const lines = [_][]const u8{
@@ -208,6 +208,53 @@ pub const Board = packed struct {
         std.debug.print("White Squares:{b:0>64}\n", .{self.whiteSquares});
         std.debug.print("Black Squares:{b:0>64}\n", .{self.blackSquares});
         std.debug.print("Empty Squares:{b:0>64}\n", .{self.emptySquares});
+    }
+
+    /// toFEN returns the board in Forsyth-Edwards Notation.
+    pub fn toFEN(self: Board) []const u8 {
+        const alloc = std.heap.page_allocator;
+
+        const maxRankValue = 7;
+        const numFiles = 8;
+
+        // 71 is the theoretical maximum length of the piece placement part of a FEN string
+        var fen = std.ArrayList(u8).initCapacity(alloc, 8 * 8 + 7) catch unreachable;
+        var emptyCount: u8 = 0;
+
+        for (0..8) |r_| {
+            const r = maxRankValue - r_;
+            // Add rank separator except for first rank
+            if (r < maxRankValue) {
+                fen.append(alloc, '/') catch unreachable;
+            }
+
+            // Process each file in the rank
+            for (0..numFiles) |f| {
+                const sq = Square.fromFileAndRank(@as(i8, @intCast(f)), @as(i8, @intCast(r)));
+                const p = self.getPieceOnSquare(sq);
+
+                if (p == Piece.None) {
+                    emptyCount += 1;
+                    continue;
+                }
+
+                // If we had empty squares before, append the count
+                if (emptyCount > 0) {
+                    fen.append(alloc, @as(u8, '0' + emptyCount)) catch unreachable;
+                    emptyCount = 0;
+                }
+
+                fen.append(alloc, p.toChar()) catch unreachable;
+            }
+
+            // If there are trailing empty squares, append the count
+            if (emptyCount > 0) {
+                fen.append(alloc, @as(u8, '0' + emptyCount)) catch unreachable;
+                emptyCount = 0;
+            }
+        }
+
+        return fen.items;
     }
 };
 
@@ -286,4 +333,43 @@ test "Board draw" {
         ++ "1 R              \n";
     try std.testing.expectEqualStrings(expected, board.draw());
     // std.debug.print("{s}\n", .{board.draw()});
+}
+
+test "Board toFEN" {
+    std.debug.print("Testing Board toFEN...\n", .{});
+    var board = Board{};
+
+    // Place pieces to form the starting position
+    // White pieces
+    try board.placePiece(Piece.WhiteRook, Square.fromFileAndRank(Square.FileA, Square.Rank1));
+    try board.placePiece(Piece.WhiteKnight, Square.fromFileAndRank(Square.FileB, Square.Rank1));
+    try board.placePiece(Piece.WhiteBishop, Square.fromFileAndRank(Square.FileC, Square.Rank1));
+    try board.placePiece(Piece.WhiteQueen, Square.fromFileAndRank(Square.FileD, Square.Rank1));
+    try board.placePiece(Piece.WhiteKing, Square.fromFileAndRank(Square.FileE, Square.Rank1));
+    try board.placePiece(Piece.WhiteBishop, Square.fromFileAndRank(Square.FileF, Square.Rank1));
+    try board.placePiece(Piece.WhiteKnight, Square.fromFileAndRank(Square.FileG, Square.Rank1));
+    try board.placePiece(Piece.WhiteRook, Square.fromFileAndRank(Square.FileH, Square.Rank1));
+    for (0..8) |f_| {
+        const f = @as(i8, @intCast(f_));
+        try board.placePiece(Piece.WhitePawn, Square.fromFileAndRank(f, Square.Rank2));
+    }
+
+    // Black pieces
+    try board.placePiece(Piece.BlackRook, Square.fromFileAndRank(Square.FileA, Square.Rank8));
+    try board.placePiece(Piece.BlackKnight, Square.fromFileAndRank(Square.FileB, Square.Rank8));
+    try board.placePiece(Piece.BlackBishop, Square.fromFileAndRank(Square.FileC, Square.Rank8));
+    try board.placePiece(Piece.BlackQueen, Square.fromFileAndRank(Square.FileD, Square.Rank8));
+    try board.placePiece(Piece.BlackKing, Square.fromFileAndRank(Square.FileE, Square.Rank8));
+    try board.placePiece(Piece.BlackBishop, Square.fromFileAndRank(Square.FileF, Square.Rank8));
+    try board.placePiece(Piece.BlackKnight, Square.fromFileAndRank(Square.FileG, Square.Rank8));
+    try board.placePiece(Piece.BlackRook, Square.fromFileAndRank(Square.FileH, Square.Rank8));
+    for (0..8) |f_| {
+        const f = @as(i8, @intCast(f_));
+        try board.placePiece(Piece.BlackPawn, Square.fromFileAndRank(f, Square.Rank7));
+    }
+    // std.debug.print("Board:\n{s}\n", .{board.draw()});
+    const fen = board.toFEN();
+    const expected_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+    // std.debug.print("FEN: {s}\n", .{fen});
+    try std.testing.expectEqualStrings(expected_fen, fen);
 }
