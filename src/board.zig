@@ -161,12 +161,11 @@ pub const Board = packed struct {
         };
     }
 
-    /// Returns a string representation of the board for debugging purposes.
-    pub fn toDebugString(self: Board) []const u8 {
+    /// Draw returns a string representation of the board.
+    pub fn draw(self: Board) []const u8 {
         const alloc = std.heap.page_allocator;
         const lines = [_][]const u8{
-            "  a b c d e f g h\n",
-            "  ---------------\n",
+            "  A B C D E F G H\n",
             "8                \n",
             "7                \n",
             "6                \n",
@@ -175,15 +174,13 @@ pub const Board = packed struct {
             "3                \n",
             "2                \n",
             "1                \n",
-            "  ---------------\n",
         };
         var out = std.ArrayList(u8).initCapacity(alloc, lines[0].len * lines.len) catch unreachable;
         out.appendSlice(alloc, lines[0]) catch unreachable;
-        out.appendSlice(alloc, lines[1]) catch unreachable;
         var bufs: [8][20]u8 = undefined;
         for (0..8) |rank| {
             const r: i8 = @intCast(7 - rank);
-            const l = rank + 2;
+            const l = rank + 1;
             std.mem.copyForwards(u8, bufs[rank][0..lines[l].len], lines[l]);
             for (0..8) |file| {
                 const f: i8 = @intCast(file);
@@ -192,7 +189,6 @@ pub const Board = packed struct {
             }
             out.appendSlice(alloc, bufs[rank][0..lines[l].len]) catch unreachable;
         }
-        out.appendSlice(alloc, lines[lines.len-1]) catch unreachable;
         return out.items;
     }
 
@@ -270,8 +266,8 @@ test "Board getKingSquare" {
     try std.testing.expectEqual(true, blackKingSquare.equals(e8));
 }
 
-test "Board toDebugString" {
-    std.debug.print("Testing Board toDebugString...\n", .{});
+test "Board draw" {
+    std.debug.print("Testing Board draw...\n", .{});
     var board = Board{};
 
     // Place some pieces
@@ -279,8 +275,7 @@ test "Board toDebugString" {
     try board.placePiece(Piece.BlackQueen, Square.fromFileAndRank(Square.FileD, Square.Rank6)); // D6
     try board.placePiece(Piece.WhiteRook, Square.fromFileAndRank(Square.FileA, Square.Rank1)); // A1
 
-    const expected = "  a b c d e f g h\n"
-        ++ "  ---------------\n"
+    const expected = "  A B C D E F G H\n"
         ++ "8                \n"
         ++ "7                \n"
         ++ "6       q        \n"
@@ -288,8 +283,7 @@ test "Board toDebugString" {
         ++ "4         K      \n"
         ++ "3                \n"
         ++ "2                \n"
-        ++ "1 R              \n"
-        ++ "  ---------------\n";
-    try std.testing.expectEqualStrings(expected, board.toDebugString());
-    // std.debug.print("{s}\n", .{board.toDebugString()});
+        ++ "1 R              \n";
+    try std.testing.expectEqualStrings(expected, board.draw());
+    // std.debug.print("{s}\n", .{board.draw()});
 }

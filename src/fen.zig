@@ -143,9 +143,8 @@ test "decodeFEN start position" {
     std.debug.print("Decoding valid FEN...\n", .{});
     const position = try decodeFEN(startFEN);
 
-    // std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.toDebugString()});
-    const expected = "  a b c d e f g h\n"
-        ++ "  ---------------\n"
+    // std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.draw()});
+    const expected = "  A B C D E F G H\n"
         ++ "8 r n b q k b n r\n"
         ++ "7 p p p p p p p p\n"
         ++ "6                \n"
@@ -153,10 +152,9 @@ test "decodeFEN start position" {
         ++ "4                \n"
         ++ "3                \n"
         ++ "2 P P P P P P P P\n"
-        ++ "1 R N B Q K B N R\n"
-        ++ "  ---------------\n";
-    // std.debug.print("Board:\n{s}", .{position.board.toDebugString()});
-    try std.testing.expectEqualStrings(expected, position.board.toDebugString());
+        ++ "1 R N B Q K B N R\n";
+    // std.debug.print("Board:\n{s}", .{position.board.draw()});
+    try std.testing.expectEqualStrings(expected, position.board.draw());
     // position.board.debugInternalBitboards();
     try std.testing.expectEqual(Square.squareBit(Square.A1) + Square.squareBit(Square.H1), position.board.whiteRooks);
     try std.testing.expectEqual(Square.squareBit(Square.B1) + Square.squareBit(Square.G1), position.board.whiteKnights);
