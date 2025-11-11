@@ -3,10 +3,15 @@ const bitboard = @import("bitboard.zig").bitboard;
 const Piece = @import("piece.zig").Piece;
 const Colour = @import("piece.zig").Colour;
 const PieceError = @import("piece.zig").PieceError;
+const PieceType = @import("piece.zig").PieceType;
+const newPiece = @import("piece.zig").newPiece;
 const Square = @import("square.zig").Square;
+const Move = @import("move.zig").Move;
+const EnPassant = @import("move.zig").EnPassant;
 
 pub const BoardError = error{
     SquareOccupied,
+    SquareEmpty,
 };
 
 pub const Board = packed struct {
@@ -42,6 +47,40 @@ pub const Board = packed struct {
             .BlackPawn => self.blackPawns,
             else => PieceError.InvalidPiece,
         };
+    }
+
+    pub fn setBBForPiece(self: *Board, piece: Piece, bb: bitboard) !void {
+        switch (piece) {
+            .WhiteKing => self.whiteKing = bb,
+            .WhiteQueen => self.whiteQueen = bb,
+            .WhiteRook => self.whiteRooks = bb,
+            .WhiteBishop => self.whiteBishops = bb,
+            .WhiteKnight => self.whiteKnights = bb,
+            .WhitePawn => self.whitePawns = bb,
+            .BlackKing => self.blackKing = bb,
+            .BlackQueen => self.blackQueen = bb,
+            .BlackRook => self.blackRooks = bb,
+            .BlackBishop => self.blackBishops = bb,
+            .BlackKnight => self.blackKnights = bb,
+            .BlackPawn => self.blackPawns = bb,
+            else => return PieceError.InvalidPiece,
+        }
+    }
+
+    fn calcConvenienceBBs(self: *Board) void {
+        self.whiteSquares = self.whiteKing
+            | self.whiteQueen
+            | self.whiteRooks
+            | self.whiteBishops
+            | self.whiteKnights
+            | self.whitePawns;
+        self.blackSquares = self.blackKing
+            | self.blackQueen
+            | self.blackRooks
+            | self.blackBishops
+            | self.blackKnights
+            | self.blackPawns;
+        self.emptySquares = ~(self.whiteSquares | self.blackSquares);
     }
 
     inline fn setBitboardBit(bb: bitboard, s: i8) bitboard {
@@ -255,6 +294,68 @@ pub const Board = packed struct {
         }
 
         return fen.items;
+    }
+
+    pub fn update(self: *Board, m: Move) !void {
+        const p1 = self.getPieceOnSquare(m.s1);
+        if (p1 == Piece.None) {
+            return BoardError.SquareEmpty;
+        }
+        const p2 = self.getPieceOnSquare(m.s2);
+        const s2bitmask = Square.squareBit(@intCast(m.s2.s));
+
+        // Move piece from s1 to s2
+        if (p2 != Piece.None) {
+            // Remove what was on s2
+            const p2BB = try self.getBBForPiece(p2);
+            try self.setBBForPiece(p2, p2BB & ~s2bitmask);
+        }
+
+        // Move what was on s1 to s2
+        const s1bitmask = Square.squareBit(@intCast(m.s1.s));
+        const p1BB_ = try self.getBBForPiece(p1);
+        try self.setBBForPiece(p1, (p1BB_ & ~s1bitmask) | s2bitmask);
+
+        // Check promotion
+        if (m.promotion != PieceType.None) {
+            const promoPiece = newPiece(m.promotion, p1.colour());
+            const p1BB = try self.getBBForPiece(p1);
+            try self.setBBForPiece(p1, p1BB & ~s2bitmask); // Remove the piece being promoted
+            const promoBB = try self.getBBForPiece(promoPiece);
+            try self.setBBForPiece(promoPiece, promoBB | s2bitmask); // Place the promoted piece
+        }
+
+        // Remove captured en passant piece
+        if (m.hasTag(EnPassant)) {
+            if (p1.colour() == .White) {
+                const epSquare = Square.fromIndex(m.s2.s - 8);
+                const epPawnBB = try self.getBBForPiece(Piece.BlackPawn);
+                try self.setBBForPiece(Piece.BlackPawn, epPawnBB & ~Square.squareBit(@intCast(epSquare.s)));
+            } else {
+                const epSquare = Square.fromIndex(m.s2.s + 8);
+                const epPawnBB = try self.getBBForPiece(Piece.WhitePawn);
+                try self.setBBForPiece(Piece.WhitePawn, epPawnBB & ~Square.squareBit(@intCast(epSquare.s)));
+            }
+        }
+
+        // Move rook for castling
+        if (m.hasTag(.KingSideCastle)) {
+            switch (p1.colour()) {
+                .White => {
+                },
+                .Black => {
+                }
+            }
+        } else if (m.hasTag(.QueenSideCastle)) {
+            switch (p1.colour()) {
+                .White => {
+                },
+                .Black => {
+                }
+            }
+        }
+
+        self.calcConvenienceBBs();
     }
 };
 

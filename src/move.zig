@@ -44,6 +44,22 @@ pub const Move = struct {
             .{ self.s1.toString(), self.s2.toString(), self.promotion.toString() },
         ) catch unreachable;
     }
+
+    pub fn hasTag(self: *const Move, tag: MoveTag) bool {
+        return (self.tags & tag) != 0;
+    }
+
+    pub fn addTag(self: *Move, tag: MoveTag) void {
+        self.tags |= tag;
+    }
+
+    pub fn ply(self: *const Move) i32 {
+        const moveNumber = @as(i32, @intCast(self.number));
+        if (self.position.turn == .Black) {
+            return (moveNumber - 1) * 2 + 1;
+        }
+        return moveNumber * 2;
+    }
 };
 
 test "Move toString" {
@@ -52,4 +68,29 @@ test "Move toString" {
         .s2 = Square.fromIndex(Square.E4),
     };
     try std.testing.expectEqualStrings("e2->e4, p: ", move.toString());
+}
+
+test "Move hasTag and addTag" {
+    var move = Move{};
+    try std.testing.expect(!move.hasTag(Capture));
+    move.addTag(Capture);
+    try std.testing.expect(move.hasTag(Capture));
+}
+
+test "Move ply" {
+    var position = Position{};
+    position.turn = .White;
+
+    var move1 = Move{
+        .position = &position,
+        .number = 1,
+    };
+    try std.testing.expectEqual(@as(i32, 2), move1.ply());
+
+    position.turn = .Black;
+    var move2 = Move{
+        .position = &position,
+        .number = 1,
+    };
+    try std.testing.expectEqual(@as(i32, 1), move2.ply());
 }
