@@ -255,14 +255,10 @@ test "Castling rights" {
 
     var rights = try CastlingRights.fromString("KQkq", Square.FileE);
     try std.testing.expectEqualStrings("KQkq", rights.toString());
-    var wksrs = rights.whiteKingSideRookSquare();
-    var wqsrs = rights.whiteQueenSideRookSquare();
-    var bksrs = rights.blackKingSideRookSquare();
-    var bqsrs = rights.blackQueenSideRookSquare();
-    try std.testing.expectEqual(Square.fromIndex(Square.H1), wksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.H8), bksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.H1), rights.whiteKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), rights.whiteQueenSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.H8), rights.blackKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), rights.blackQueenSideRookSquare());
 
     rights = try rights.removeAllCastlingRights(Colour.White);
     try std.testing.expectEqualStrings("kq", rights.toString());
@@ -276,25 +272,17 @@ test "Castling rights" {
 
     rights = try CastlingRights.fromString("HAha", Square.FileE);
     try std.testing.expectEqualStrings("HAha", rights.toString());
-    wksrs = rights.whiteKingSideRookSquare();
-    wqsrs = rights.whiteQueenSideRookSquare();
-    bksrs = rights.blackKingSideRookSquare();
-    bqsrs = rights.blackQueenSideRookSquare();
-    try std.testing.expectEqual(Square.fromIndex(Square.H1), wksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.H8), bksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.H1), rights.whiteKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), rights.whiteQueenSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.H8), rights.blackKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), rights.blackQueenSideRookSquare());
 
     rights = try CastlingRights.fromString("CAca", Square.FileB);
     try std.testing.expectEqualStrings("CAca", rights.toString());
-    wksrs = rights.whiteKingSideRookSquare();
-    wqsrs = rights.whiteQueenSideRookSquare();
-    bksrs = rights.blackKingSideRookSquare();
-    bqsrs = rights.blackQueenSideRookSquare();
-    try std.testing.expectEqual(Square.fromIndex(Square.C1), wksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.C8), bksrs);
-    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.C1), rights.whiteKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), rights.whiteQueenSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.C8), rights.blackKingSideRookSquare());
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), rights.blackQueenSideRookSquare());
 
     try std.testing.expectError(CastlingError.InvalidCastlingRights, CastlingRights.fromString("CAcA", Square.FileA));
     try std.testing.expectError(CastlingError.InvalidCastlingRights, CastlingRights.fromString("CAcA", Square.FileC));
