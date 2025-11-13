@@ -40,6 +40,38 @@ pub const CastlingRights = packed struct {
     //     }
     // }
 
+    pub fn whiteKingSideRookSquare(self: CastlingRights) Square {
+        return switch (self.whiteKingSide) {
+            'K'  => Square.H1,
+            'A'...'H' => Square.fromFileAndRank(@as(i8, self.whiteKingSide - 'A'), 0),
+            _ => Square.None,
+        };
+    }
+
+    pub fn whiteQueenSideRookSquare(self: CastlingRights) Square {
+        return switch (self.whiteQueenSide) {
+            'Q'  => Square.A1,
+            'A'...'H' => Square.fromFileAndRank(@as(i8, self.whiteQueenSide - 'A'), 0),
+            _ => Square.None,
+        };
+    }
+
+    pub fn blackKingSideRookSquare(self: CastlingRights) Square {
+        return switch (self.blackKingSide) {
+            'k'  => Square.H8,
+            'a'...'h' => Square.fromFileAndRank(@as(i8, self.blackKingSide - 'a'), 7),
+            _ => Square.None,
+        };
+    }
+
+    pub fn blackQueenSideRookSquare(self: CastlingRights) Square {
+        return switch (self.blackQueenSide) {
+            'q'  => Square.A8,
+            'a'...'h' => Square.fromFileAndRank(@as(i8, self.blackQueenSide - 'a'), 7),
+            _ => Square.None,
+        };
+    }
+
     /// Creates CastlingRights from FEN notation.
     pub fn fromString(rightsStr: []const u8, kingFile: comptime_int) !CastlingRights {
         // The king can only be on files B-G for castling to be possible

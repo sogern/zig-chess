@@ -1,6 +1,7 @@
 const std = @import("std");
 const bitboard = @import("bitboard.zig").bitboard;
 const Piece = @import("piece.zig").Piece;
+const CastlingRights = @import("castling.zig").CastlingRights;
 const Colour = @import("piece.zig").Colour;
 const PieceError = @import("piece.zig").PieceError;
 const PieceType = @import("piece.zig").PieceType;
@@ -8,6 +9,8 @@ const newPiece = @import("piece.zig").newPiece;
 const Square = @import("square.zig").Square;
 const Move = @import("move.zig").Move;
 const EnPassant = @import("move.zig").EnPassant;
+const KingSideCastle = @import("move.zig").KingSideCastle;
+const QueenSideCastle = @import("move.zig").QueenSideCastle;
 
 pub const BoardError = error{
     SquareOccupied,
@@ -296,7 +299,7 @@ pub const Board = packed struct {
         return fen.items;
     }
 
-    pub fn update(self: *Board, m: Move) !void {
+    pub fn update(self: *Board, m: Move, cr: CastlingRights) !void {
         const p1 = self.getPieceOnSquare(m.s1);
         if (p1 == Piece.None) {
             return BoardError.SquareEmpty;
@@ -327,30 +330,31 @@ pub const Board = packed struct {
 
         // Remove captured en passant piece
         if (m.hasTag(EnPassant)) {
+            const epBitmask = Square.squareBit(@intCast(m.s2.s));
             if (p1.colour() == .White) {
-                const epSquare = Square.fromIndex(m.s2.s - 8);
-                const epPawnBB = try self.getBBForPiece(Piece.BlackPawn);
-                try self.setBBForPiece(Piece.BlackPawn, epPawnBB & ~Square.squareBit(@intCast(epSquare.s)));
+                self.bbBlackPawns &= ~(epBitmask << 8);
             } else {
-                const epSquare = Square.fromIndex(m.s2.s + 8);
-                const epPawnBB = try self.getBBForPiece(Piece.WhitePawn);
-                try self.setBBForPiece(Piece.WhitePawn, epPawnBB & ~Square.squareBit(@intCast(epSquare.s)));
+                self.bbWhitePawns &= ~(epBitmask >> 8);
             }
         }
 
         // Move rook for castling
-        if (m.hasTag(.KingSideCastle)) {
+        if (m.hasTag(KingSideCastle)) {
             switch (p1.colour()) {
                 .White => {
+                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteKingSideRookSquare()) | Square.squareBit(Square.F1);
                 },
                 .Black => {
+                    self.bbBlackRooks &= ~Square.squareBit(cr.blackKingSideRookSquare()) | Square.squareBit(Square.F8);
                 }
             }
-        } else if (m.hasTag(.QueenSideCastle)) {
+        } else if (m.hasTag(QueenSideCastle)) {
             switch (p1.colour()) {
                 .White => {
+                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteQueenSideRookSquare()) | Square.squareBit(Square.D1);
                 },
                 .Black => {
+                    self.bbBlackRooks &= ~Square.squareBit(cr.blackQueenSideRookSquare()) | Square.squareBit(Square.D8);
                 }
             }
         }

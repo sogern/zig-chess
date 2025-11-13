@@ -42,7 +42,7 @@ pub const Position = struct {
         }
 
         var board = self.board;
-        board.update(move);
+        board.update(move, self.castling);
 
         return .{
             .board = board,
