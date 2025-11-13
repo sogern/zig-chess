@@ -342,19 +342,19 @@ pub const Board = packed struct {
         if (m.hasTag(KingSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteKingSideRookSquare()) | Square.squareBit(Square.F1);
+                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteKingSideRookSquare().s) | Square.squareBit(Square.F1);
                 },
                 .Black => {
-                    self.bbBlackRooks &= ~Square.squareBit(cr.blackKingSideRookSquare()) | Square.squareBit(Square.F8);
+                    self.bbBlackRooks &= ~Square.squareBit(cr.blackKingSideRookSquare().s) | Square.squareBit(Square.F8);
                 }
             }
         } else if (m.hasTag(QueenSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteQueenSideRookSquare()) | Square.squareBit(Square.D1);
+                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteQueenSideRookSquare().s) | Square.squareBit(Square.D1);
                 },
                 .Black => {
-                    self.bbBlackRooks &= ~Square.squareBit(cr.blackQueenSideRookSquare()) | Square.squareBit(Square.D8);
+                    self.bbBlackRooks &= ~Square.squareBit(cr.blackQueenSideRookSquare().s) | Square.squareBit(Square.D8);
                 }
             }
         }
