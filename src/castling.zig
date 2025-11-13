@@ -12,7 +12,6 @@ pub const CastlingSide = enum(u8) {
     None,
 };
 
-
 /// CastlingRights holds four u8 values representing the right for each colour and side to perform castling.
 /// It also holds the starting file of the king,
 /// and a boolean indicating whether the castling rights are in standard FEN notation or X-FEN notation for Chess960.
@@ -42,33 +41,33 @@ pub const CastlingRights = packed struct {
 
     pub fn whiteKingSideRookSquare(self: CastlingRights) Square {
         return switch (self.whiteKingSide) {
-            'K'  => Square.H1,
-            'A'...'H' => Square.fromFileAndRank(@as(i8, self.whiteKingSide - 'A'), 0),
-            _ => Square.None,
+            'K' => Square.fromIndex(Square.H1),
+            'A'...'H' => Square.fromFileAndRank(@as(i8, @intCast(self.whiteKingSide - 'A')), 0),
+            else => Square.None,
         };
     }
 
     pub fn whiteQueenSideRookSquare(self: CastlingRights) Square {
         return switch (self.whiteQueenSide) {
-            'Q'  => Square.A1,
-            'A'...'H' => Square.fromFileAndRank(@as(i8, self.whiteQueenSide - 'A'), 0),
-            _ => Square.None,
+            'Q' => Square.fromIndex(Square.A1),
+            'A'...'H' => Square.fromFileAndRank(@as(i8, @intCast(self.whiteQueenSide - 'A')), 0),
+            else => Square.None,
         };
     }
 
     pub fn blackKingSideRookSquare(self: CastlingRights) Square {
         return switch (self.blackKingSide) {
-            'k'  => Square.H8,
-            'a'...'h' => Square.fromFileAndRank(@as(i8, self.blackKingSide - 'a'), 7),
-            _ => Square.None,
+            'k' => Square.fromIndex(Square.H8),
+            'a'...'h' => Square.fromFileAndRank(@as(i8, @intCast(self.blackKingSide - 'a')), 7),
+            else => Square.None,
         };
     }
 
     pub fn blackQueenSideRookSquare(self: CastlingRights) Square {
         return switch (self.blackQueenSide) {
-            'q'  => Square.A8,
-            'a'...'h' => Square.fromFileAndRank(@as(i8, self.blackQueenSide - 'a'), 7),
-            _ => Square.None,
+            'q' => Square.fromIndex(Square.A8),
+            'a'...'h' => Square.fromFileAndRank(@as(i8, @intCast(self.blackQueenSide - 'a')), 7),
+            else => Square.None,
         };
     }
 
@@ -122,7 +121,7 @@ pub const CastlingRights = packed struct {
                         return CastlingError.InvalidCastlingRights;
                     }
                 },
-                '-'  => {}, // No castling rights
+                '-' => {}, // No castling rights
                 else => return CastlingError.InvalidCastlingRights,
             }
         }
@@ -256,6 +255,14 @@ test "Castling rights" {
 
     var rights = try CastlingRights.fromString("KQkq", Square.FileE);
     try std.testing.expectEqualStrings("KQkq", rights.toString());
+    var wksrs = rights.whiteKingSideRookSquare();
+    var wqsrs = rights.whiteQueenSideRookSquare();
+    var bksrs = rights.blackKingSideRookSquare();
+    var bqsrs = rights.blackQueenSideRookSquare();
+    try std.testing.expectEqual(Square.fromIndex(Square.H1), wksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.H8), bksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
 
     rights = try rights.removeAllCastlingRights(Colour.White);
     try std.testing.expectEqualStrings("kq", rights.toString());
@@ -269,9 +276,25 @@ test "Castling rights" {
 
     rights = try CastlingRights.fromString("HAha", Square.FileE);
     try std.testing.expectEqualStrings("HAha", rights.toString());
+    wksrs = rights.whiteKingSideRookSquare();
+    wqsrs = rights.whiteQueenSideRookSquare();
+    bksrs = rights.blackKingSideRookSquare();
+    bqsrs = rights.blackQueenSideRookSquare();
+    try std.testing.expectEqual(Square.fromIndex(Square.H1), wksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.H8), bksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
 
     rights = try CastlingRights.fromString("CAca", Square.FileB);
     try std.testing.expectEqualStrings("CAca", rights.toString());
+    wksrs = rights.whiteKingSideRookSquare();
+    wqsrs = rights.whiteQueenSideRookSquare();
+    bksrs = rights.blackKingSideRookSquare();
+    bqsrs = rights.blackQueenSideRookSquare();
+    try std.testing.expectEqual(Square.fromIndex(Square.C1), wksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A1), wqsrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.C8), bksrs);
+    try std.testing.expectEqual(Square.fromIndex(Square.A8), bqsrs);
 
     try std.testing.expectError(CastlingError.InvalidCastlingRights, CastlingRights.fromString("CAcA", Square.FileA));
     try std.testing.expectError(CastlingError.InvalidCastlingRights, CastlingRights.fromString("CAcA", Square.FileC));
