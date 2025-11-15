@@ -112,7 +112,7 @@ pub const Square = struct {
     pub const G8 = 62;
     pub const H8 = 63;
 
-    pub const squareBits = [_]u64{
+    const squareBits = [_]u64{
         @as(u64, 1) << (63 - A1),
         @as(u64, 1) << (63 - B1),
         @as(u64, 1) << (63 - C1),
@@ -200,6 +200,70 @@ pub const Square = struct {
     pub const NoRank: i8 = -1;
 
     pub const None: Square = .{ .s = NoSquare, .f = NoFile, .r = NoRank };
+    pub const SqA1: Square = .{ .s = A1, .f = FileA, .r = Rank1 };
+    pub const SqA2: Square = .{ .s = A2, .f = FileA, .r = Rank2 };
+    pub const SqA3: Square = .{ .s = A3, .f = FileA, .r = Rank3 };
+    pub const SqA4: Square = .{ .s = A4, .f = FileA, .r = Rank4 };
+    pub const SqA5: Square = .{ .s = A5, .f = FileA, .r = Rank5 };
+    pub const SqA6: Square = .{ .s = A6, .f = FileA, .r = Rank6 };
+    pub const SqA7: Square = .{ .s = A7, .f = FileA, .r = Rank7 };
+    pub const SqA8: Square = .{ .s = A8, .f = FileA, .r = Rank8 };
+    pub const SqB1: Square = .{ .s = B1, .f = FileB, .r = Rank1 };
+    pub const SqB2: Square = .{ .s = B2, .f = FileB, .r = Rank2 };
+    pub const SqB3: Square = .{ .s = B3, .f = FileB, .r = Rank3 };
+    pub const SqB4: Square = .{ .s = B4, .f = FileB, .r = Rank4 };
+    pub const SqB5: Square = .{ .s = B5, .f = FileB, .r = Rank5 };
+    pub const SqB6: Square = .{ .s = B6, .f = FileB, .r = Rank6 };
+    pub const SqB7: Square = .{ .s = B7, .f = FileB, .r = Rank7 };
+    pub const SqB8: Square = .{ .s = B8, .f = FileB, .r = Rank8 };
+    pub const SqC1: Square = .{ .s = C1, .f = FileC, .r = Rank1 };
+    pub const SqC2: Square = .{ .s = C2, .f = FileC, .r = Rank2 };
+    pub const SqC3: Square = .{ .s = C3, .f = FileC, .r = Rank3 };
+    pub const SqC4: Square = .{ .s = C4, .f = FileC, .r = Rank4 };
+    pub const SqC5: Square = .{ .s = C5, .f = FileC, .r = Rank5 };
+    pub const SqC6: Square = .{ .s = C6, .f = FileC, .r = Rank6 };
+    pub const SqC7: Square = .{ .s = C7, .f = FileC, .r = Rank7 };
+    pub const SqC8: Square = .{ .s = C8, .f = FileC, .r = Rank8 };
+    pub const SqD1: Square = .{ .s = D1, .f = FileD, .r = Rank1 };
+    pub const SqD2: Square = .{ .s = D2, .f = FileD, .r = Rank2 };
+    pub const SqD3: Square = .{ .s = D3, .f = FileD, .r = Rank3 };
+    pub const SqD4: Square = .{ .s = D4, .f = FileD, .r = Rank4 };
+    pub const SqD5: Square = .{ .s = D5, .f = FileD, .r = Rank5 };
+    pub const SqD6: Square = .{ .s = D6, .f = FileD, .r = Rank6 };
+    pub const SqD7: Square = .{ .s = D7, .f = FileD, .r = Rank7 };
+    pub const SqD8: Square = .{ .s = D8, .f = FileD, .r = Rank8 };
+    pub const SqE1: Square = .{ .s = E1, .f = FileE, .r = Rank1 };
+    pub const SqE2: Square = .{ .s = E2, .f = FileE, .r = Rank2 };
+    pub const SqE3: Square = .{ .s = E3, .f = FileE, .r = Rank3 };
+    pub const SqE4: Square = .{ .s = E4, .f = FileE, .r = Rank4 };
+    pub const SqE5: Square = .{ .s = E5, .f = FileE, .r = Rank5 };
+    pub const SqE6: Square = .{ .s = E6, .f = FileE, .r = Rank6 };
+    pub const SqE7: Square = .{ .s = E7, .f = FileE, .r = Rank7 };
+    pub const SqE8: Square = .{ .s = E8, .f = FileE, .r = Rank8 };
+    pub const SqF1: Square = .{ .s = F1, .f = FileF, .r = Rank1 };
+    pub const SqF2: Square = .{ .s = F2, .f = FileF, .r = Rank2 };
+    pub const SqF3: Square = .{ .s = F3, .f = FileF, .r = Rank3 };
+    pub const SqF4: Square = .{ .s = F4, .f = FileF, .r = Rank4 };
+    pub const SqF5: Square = .{ .s = F5, .f = FileF, .r = Rank5 };
+    pub const SqF6: Square = .{ .s = F6, .f = FileF, .r = Rank6 };
+    pub const SqF7: Square = .{ .s = F7, .f = FileF, .r = Rank7 };
+    pub const SqF8: Square = .{ .s = F8, .f = FileF, .r = Rank8 };
+    pub const SqG1: Square = .{ .s = G1, .f = FileG, .r = Rank1 };
+    pub const SqG2: Square = .{ .s = G2, .f = FileG, .r = Rank2 };
+    pub const SqG3: Square = .{ .s = G3, .f = FileG, .r = Rank3 };
+    pub const SqG4: Square = .{ .s = G4, .f = FileG, .r = Rank4 };
+    pub const SqG5: Square = .{ .s = G5, .f = FileG, .r = Rank5 };
+    pub const SqG6: Square = .{ .s = G6, .f = FileG, .r = Rank6 };
+    pub const SqG7: Square = .{ .s = G7, .f = FileG, .r = Rank7 };
+    pub const SqG8: Square = .{ .s = G8, .f = FileG, .r = Rank8 };
+    pub const SqH1: Square = .{ .s = H1, .f = FileH, .r = Rank1 };
+    pub const SqH2: Square = .{ .s = H2, .f = FileH, .r = Rank2 };
+    pub const SqH3: Square = .{ .s = H3, .f = FileH, .r = Rank3 };
+    pub const SqH4: Square = .{ .s = H4, .f = FileH, .r = Rank4 };
+    pub const SqH5: Square = .{ .s = H5, .f = FileH, .r = Rank5 };
+    pub const SqH6: Square = .{ .s = H6, .f = FileH, .r = Rank6 };
+    pub const SqH7: Square = .{ .s = H7, .f = FileH, .r = Rank7 };
+    pub const SqH8: Square = .{ .s = H8, .f = FileH, .r = Rank8 };
 };
 
 const squareStrings = [_]*const [2]u8{
