@@ -223,7 +223,7 @@ pub const Board = packed struct {
         for (0..8) |rank| {
             const r: i8 = @intCast(7 - rank);
             const l = rank + 1;
-            std.mem.copyForwards(u8, bufs[rank][0..lines[l].len], lines[l]);
+            @memmove(bufs[rank][0..lines[l].len], lines[l]);
             for (0..8) |file| {
                 const f: i8 = @intCast(file);
                 const piece = self.getPieceOnSquare(Square.fromFileAndRank(f, r));
@@ -234,7 +234,7 @@ pub const Board = packed struct {
         return out.items;
     }
 
-    pub fn debugInternalBitboards(self: Board) void {
+    pub fn printInternalBitboards(self: Board) void {
         std.debug.print("White King:   {b:0>64}\n", .{self.whiteKing});
         std.debug.print("White Queen:  {b:0>64}\n", .{self.whiteQueen});
         std.debug.print("White Rooks:  {b:0>64}\n", .{self.whiteRooks});
