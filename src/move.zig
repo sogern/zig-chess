@@ -2,6 +2,7 @@ const std = @import("std");
 const Square = @import("square.zig").Square;
 const PieceType = @import("piece.zig").PieceType;
 const startFEN = @import("fen.zig").startFEN;
+const decodeFEN = @import("fen.zig").decodeFEN;
 const Position = @import("position.zig").Position;
 
 /// MoveTag represents a notable consequence of a move.
@@ -94,3 +95,29 @@ test "Move ply" {
     };
     try std.testing.expectEqual(@as(i32, 1), move2.ply());
 }
+
+fn unsafeDecodeFEN(fen: []const u8) *Position {
+    const out = std.heap.page_allocator.create(Position) catch unreachable;
+    out.* = decodeFEN(fen) catch unreachable;
+    return out;
+}
+
+// fn moveIsValid(position: *const Position, move: Move) bool {
+//     // Placeholder implementation
+//     return true;
+// }
+
+// test "Move valid moves" {
+//     const testCase = struct {
+//         position: *Position,
+//         move: Move,
+//         postPosition: *Position = null,
+//     };
+//     const testCases: []const testCase = &[_]testCase{
+//         // Pawn moves
+//         .{
+//             .move = Move{.s1 = Square.SqE2, .s2 = Square.SqE4 },
+//             .position = unsafeDecodeFEN("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1")
+//         },
+//     };
+// }

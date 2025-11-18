@@ -1,5 +1,6 @@
 const std = @import("std");
 const Board = @import("board.zig").Board;
+const Engine = @import("engine.zig").Engine;
 const Colour = @import("piece.zig").Colour;
 const CastlingRights = @import("castling.zig").CastlingRights;
 const Square = @import("square.zig").Square;
@@ -91,6 +92,14 @@ pub const Position = struct {
     //     }
     //
     // }
+
+    pub fn getValidMoves(self: *const Position) []Move {
+        if (self.validMoves) {
+            return self.validMoves;
+        }
+        self.validMoves = Engine.calcMoves(self, false);
+        return self.validMoves;
+    }
 };
 
 test "Position initialization" {
