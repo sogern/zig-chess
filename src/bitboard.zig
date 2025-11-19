@@ -746,3 +746,82 @@ fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove 
 //     std.debug.print("King moves:\n", .{});
 //     printPieceMoves(moves);
 // }
+
+/// drawBitboard returns a string representation of the bitboard.
+pub fn drawBitboard(bb: bitboard) []const u8 {
+    const alloc = std.heap.page_allocator;
+    const lines = [_][]const u8{
+        "  A B C D E F G H\n",
+        "8                \n",
+        "7                \n",
+        "6                \n",
+        "5                \n",
+        "4                \n",
+        "3                \n",
+        "2                \n",
+        "1                \n",
+    };
+    var out = std.ArrayList(u8).initCapacity(alloc, lines[0].len * lines.len) catch unreachable;
+    out.appendSlice(alloc, lines[0]) catch unreachable;
+    var bufs: [8][20]u8 = undefined;
+    for (0..8) |rank| {
+        const r: i8 = @intCast(7 - rank);
+        const l = rank + 1;
+        @memmove(bufs[rank][0..lines[l].len], lines[l]);
+        for (0..8) |file| {
+            const f: i8 = @intCast(file);
+            const sq = Square.fromFileAndRank(f, r);
+            const bbForSquare = Square.squareBit(@as(usize, @intCast(sq.s)));
+            if (bb & bbForSquare != 0) {
+                bufs[rank][file * 2 + 2] = 'X';
+            } else {
+                bufs[rank][file * 2 + 2] = ' ';
+            }
+        }
+        out.appendSlice(alloc, bufs[rank][0..lines[l].len]) catch unreachable;
+    }
+    return out.items;
+}
+
+fn debugBitboard(bb: bitboard, name: []const u8) void {
+    std.debug.print("{s}: 0x{x:0>16}\n{s}", .{name, bb, drawBitboard(bb)});
+}
+
+test "Debug bitboard" {
+    const sqBB: bitboard = Square.squareBit(@as(usize, @intCast(Square.SqB4.s)));
+    debugBitboard(sqBB, "sqBB");
+    // const occupied: bitboard = 0x0000004800000008;
+    const occupied: bitboard = 0x10004800000800;
+    debugBitboard(occupied, "occupied");
+    // const mask = bbRank4;
+    // const mask = bbFileB;
+    // const mask = bbDiagonals[Square.SqB4.s];
+    const mask = bbAntiDiagonals[Square.SqB4.s];
+    debugBitboard(mask, "mask");
+    const oInMask = occupied & mask;
+    debugBitboard(oInMask, "oInMask");
+    // const twoXsqBB = 2 * sqBB;
+    const twoXsqBB = sqBB << 1; // Multiply by 2
+    debugBitboard(twoXsqBB, "twoXsqBB");
+    // const oInMaskMinusTwoXsqBB = oInMask & ~twoXsqBB;
+    const oInMaskMinusTwoXsqBB = oInMask -% twoXsqBB;
+    debugBitboard(oInMaskMinusTwoXsqBB, "oInMaskMinusTwoXsqBB");
+    const oInMaskReversed = @bitReverse(oInMask);
+    debugBitboard(oInMaskReversed, "oInMaskReversed");
+    const sqBBReversed = @bitReverse(sqBB);
+    debugBitboard(sqBBReversed, "sqBBReversed");
+    const twoXsqBBReversed = sqBBReversed << 1; // Multiply by 2
+    // const twoXsqBBReversed = @bitReverse(twoXsqBB);
+    debugBitboard(twoXsqBBReversed, "twoXsqBBReversed");
+    const oInMaskReversedMinusTwoXsqBBReversed = oInMaskReversed -% twoXsqBBReversed;
+    debugBitboard(oInMaskReversedMinusTwoXsqBBReversed, "oInMaskReversedMinusTwoXsqBBReversed");
+    const oInMaskReversedMinusTwoXsqBBReversedReversed = @bitReverse(oInMaskReversedMinusTwoXsqBBReversed);
+    debugBitboard(oInMaskReversedMinusTwoXsqBBReversedReversed, "oInMaskReversedMinusTwoXsqBBReversedReversed");
+    const xorResult = oInMaskMinusTwoXsqBB ^ oInMaskReversedMinusTwoXsqBBReversedReversed;
+    debugBitboard(xorResult, "xorResult");
+    const finalResult = xorResult & mask;
+    debugBitboard(finalResult, "finalResult");
+
+    const formula = ((oInMask -% 2 * sqBB) ^ @bitReverse(@bitReverse(oInMask) -% 2 * @bitReverse(sqBB))) & mask;
+    debugBitboard(formula, "formula");
+}

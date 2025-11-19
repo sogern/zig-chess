@@ -85,21 +85,21 @@ const Engine = struct {
     /// pawnMoves returns a bitboard of possible moves for a pawn on the given square in the given position.
     /// The function considers single and double forward moves, as well as diagonal and en passant captures.
     fn pawnMoves(pos: *const Position, sq: Square) bitboard {
-        const bb = Square.squareBit(@as(usize, @intCast(sq.s)));
+        const sqBB = Square.squareBit(@as(usize, @intCast(sq.s)));
         var bbEnPassant: bitboard = 0;
         if (pos.enPassantSquare != .None) {
             bbEnPassant = Square.squareBit(@as(usize, @intCast(pos.enPassantSquare.s)));
         }
         if (pos.turn == .White) {
-            const capRight = ((bb & ~bbFileH & ~bbRank8) >> 9) & (pos.board.blackSquares | bbEnPassant);
-            const capLeft = ((bb & ~bbFileA & ~bbRank8) >> 7) & (pos.board.blackSquares | bbEnPassant);
-            const oneStep = ((bb & ~bbRank8) >> 8) & pos.board.emptySquares;
+            const capRight = ((sqBB & ~bbFileH & ~bbRank8) >> 9) & (pos.board.blackSquares | bbEnPassant);
+            const capLeft = ((sqBB & ~bbFileA & ~bbRank8) >> 7) & (pos.board.blackSquares | bbEnPassant);
+            const oneStep = ((sqBB & ~bbRank8) >> 8) & pos.board.emptySquares;
             const twoStep = ((oneStep & bbRank3) >> 8) & pos.board.emptySquares;
             return capRight | capLeft | oneStep | twoStep;
         } else {
-            const capRight = ((bb & ~bbFileH & ~bbRank1) << 7) & (pos.board.whiteSquares | bbEnPassant);
-            const capLeft = ((bb & ~bbFileA & ~bbRank1) << 9) & (pos.board.whiteSquares | bbEnPassant);
-            const oneStep = ((bb & ~bbRank1) << 8) & pos.board.emptySquares;
+            const capRight = ((sqBB & ~bbFileH & ~bbRank1) << 7) & (pos.board.whiteSquares | bbEnPassant);
+            const capLeft = ((sqBB & ~bbFileA & ~bbRank1) << 9) & (pos.board.whiteSquares | bbEnPassant);
+            const oneStep = ((sqBB & ~bbRank1) << 8) & pos.board.emptySquares;
             const twoStep = ((oneStep & bbRank6) << 8) & pos.board.emptySquares;
             return capRight | capLeft | oneStep | twoStep;
         }
@@ -108,27 +108,27 @@ const Engine = struct {
     /// diaAttack returns a bitboard of possible diagonal moves
     /// for a sliding piece, considering occupied squares as blocking further movement.
     fn diaAttack(occupied: bitboard, sq: Square) bitboard {
-        const bb = Square.squareBit(sq);
+        const sqBB = Square.squareBit(sq);
         const dMask = bbDiagonals[sq.s];
         const adMask = bbAntiDiagonals[sq.s];
-        return linearAttack(occupied, bb, dMask) | linearAttack(occupied, bb, adMask);
+        return linearAttack(occupied, sqBB, dMask) | linearAttack(occupied, sqBB, adMask);
     }
 
     /// hvAttack returns a bitboard of possible horizontal and vertical moves
     /// for a sliding piece, considering occupied squares as blocking further movement.
     fn hvAttack(occupied: bitboard, sq: Square) bitboard {
-        const bb = Square.squareBit(sq);
+        const sqBB = Square.squareBit(sq);
         const rankMask = bbRanks[sq.rank()];
         const fileMask = bbFiles[sq.file()];
-        return linearAttack(occupied, bb, rankMask) | linearAttack(occupied, bb, fileMask);
+        return linearAttack(occupied, sqBB, rankMask) | linearAttack(occupied, sqBB, fileMask);
     }
 
     /// linearAttack returns a bitboard of possible moves
     /// in a single direction (rank, file or diagonal) for a sliding piece,
     /// considering occupied squares as blocking further movement.
-    fn linearAttack(occupied: bitboard, bb: bitboard, mask: bitboard) bitboard {
+    fn linearAttack(occupied: bitboard, sqBB: bitboard, mask: bitboard) bitboard {
         const oInMask = occupied & mask;
-        return ((oInMask - 2 * bb) ^ @bitReverse(@bitReverse(oInMask) - 2 * @bitReverse(bb))) & mask;
+        return ((oInMask -% 2 * sqBB) ^ @bitReverse(@bitReverse(oInMask) -% 2 * @bitReverse(sqBB))) & mask;
     }
 
     fn castlingMoves(_: *const Position) []Move {
