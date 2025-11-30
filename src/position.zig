@@ -100,6 +100,38 @@ pub const Position = struct {
         self.validMoves = Engine.calcMoves(self, false);
         return self.validMoves;
     }
+
+    pub fn hasValidMoves(self: *const Position) bool {
+        return self.validMoves and self.validMoves.len > 0;
+    }
+
+    pub fn copy(self: *const Position) Position {
+        return Position{
+            .board = self.board,
+            .castling = self.castling,
+            .halfMoveClock = self.halfMoveClock,
+            .moveCount = self.moveCount,
+            .turn = self.turn,
+            .enPassantSquare = self.enPassantSquare,
+            .inCheck = self.inCheck,
+        };
+    }
+
+    pub fn toString(self: *const Position) []const u8 {
+        const alloc = std.heap.page_allocator;
+        var out = std.ArrayList(u8).initCapacity(alloc, 256) catch unreachable;
+        var buf: [256]u8 = undefined;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buf, "T: {c}, CR: {s}, HMC: {d}, MC: {d}, EP: {s}, Board:\n{s}\n",
+        .{
+            self.turn.toChar(),
+            self.castling.toString(),
+            self.halfMoveClock,
+            self.moveCount,
+            self.enPassantSquare.toString(),
+            self.board.draw()
+        }) catch unreachable) catch unreachable;
+        return out.items;
+    }
 };
 
 test "Position initialization" {

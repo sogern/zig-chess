@@ -6,22 +6,22 @@ const Square = @import("square.zig").Square;
 /// starting from the most significant bit (A1) to the least significant bit (H8).
 pub const bitboard = u64;
 
-const bbFileA: bitboard = 0x8080808080808080;
-const bbFileB: bitboard = 0x4040404040404040;
-const bbFileC: bitboard = 0x2020202020202020;
-const bbFileD: bitboard = 0x1010101010101010;
-const bbFileE: bitboard = 0x0808080808080808;
-const bbFileF: bitboard = 0x0404040404040404;
-const bbFileG: bitboard = 0x0202020202020202;
-const bbFileH: bitboard = 0x0101010101010101;
-const bbRank1: bitboard = 0xFF00000000000000;
-const bbRank2: bitboard = 0x00FF000000000000;
-const bbRank3: bitboard = 0x0000FF0000000000;
-const bbRank4: bitboard = 0x000000FF00000000;
-const bbRank5: bitboard = 0x00000000FF000000;
-const bbRank6: bitboard = 0x0000000000FF0000;
-const bbRank7: bitboard = 0x000000000000FF00;
-const bbRank8: bitboard = 0x00000000000000FF;
+pub const bbFileA: bitboard = 0x8080808080808080;
+pub const bbFileB: bitboard = 0x4040404040404040;
+pub const bbFileC: bitboard = 0x2020202020202020;
+pub const bbFileD: bitboard = 0x1010101010101010;
+pub const bbFileE: bitboard = 0x0808080808080808;
+pub const bbFileF: bitboard = 0x0404040404040404;
+pub const bbFileG: bitboard = 0x0202020202020202;
+pub const bbFileH: bitboard = 0x0101010101010101;
+pub const bbRank1: bitboard = 0xFF00000000000000;
+pub const bbRank2: bitboard = 0x00FF000000000000;
+pub const bbRank3: bitboard = 0x0000FF0000000000;
+pub const bbRank4: bitboard = 0x000000FF00000000;
+pub const bbRank5: bitboard = 0x00000000FF000000;
+pub const bbRank6: bitboard = 0x0000000000FF0000;
+pub const bbRank7: bitboard = 0x000000000000FF00;
+pub const bbRank8: bitboard = 0x00000000000000FF;
 
 // Lookup tables for piece movement
 //
@@ -35,7 +35,7 @@ const bbRank8: bitboard = 0x00000000000000FF;
 // 2 . . . . . . . .
 // 1 . . . . . . . . MSB byte (A1)
 
-const bbFiles = [_]bitboard{
+pub const bbFiles = [_]bitboard{
     bbFileA,
     bbFileB,
     bbFileC,
@@ -46,7 +46,7 @@ const bbFiles = [_]bitboard{
     bbFileH,
 };
 
-const bbRanks = [_]bitboard{
+pub const bbRanks = [_]bitboard{
     bbRank1,
     bbRank2,
     bbRank3,
@@ -57,7 +57,7 @@ const bbRanks = [_]bitboard{
     bbRank8,
 };
 
-const bbDiagonals = [_]bitboard{
+pub const bbDiagonals = [_]bitboard{
     // Diagonals from lower left to upper right
     0x8040201008040201, // a1
     0x4020100804020100, // b1
@@ -125,7 +125,7 @@ const bbDiagonals = [_]bitboard{
     0x8040201008040201, // h8
 };
 
-const bbAntiDiagonals = [_]bitboard{
+pub const bbAntiDiagonals = [_]bitboard{
     // Diagonals from upper left to lower right
     0x8000000000000000, // a1
     0x4080000000000000, // b1
@@ -193,7 +193,7 @@ const bbAntiDiagonals = [_]bitboard{
     0x0000000000000001, // h8
 };
 
-const bbKnightMoves = [_]bitboard{
+pub const bbKnightMoves = [_]bitboard{
     0x0020400000000000, // a1
     0x0010a00000000000, // b1
     0x0088500000000000, // c1
@@ -264,7 +264,7 @@ const bbKnightMoves = [_]bitboard{
     0x0000000000020400, // h8
 };
 
-const bbBishopMoves = [_]bitboard{
+pub const bbBishopMoves = [_]bitboard{
     0x0040201008040201, // a1
     0x00a0100804020100, // b1
     0x0050880402010000, // c1
@@ -331,7 +331,7 @@ const bbBishopMoves = [_]bitboard{
     0x8040201008040200, // h8
 };
 
-const bbRookMoves = [_]bitboard{
+pub const bbRookMoves = [_]bitboard{
     0x7f80808080808080, // a1
     0xbf40404040404040, // b1
     0xdf20202020202020, // c1
@@ -398,7 +398,7 @@ const bbRookMoves = [_]bitboard{
     0x01010101010101fe, // h8
 };
 
-const bbQueenMoves = [_]bitboard{
+pub const bbQueenMoves = [_]bitboard{
     0x7fc0a09088848281, // a1
     0xbfe0504844424140, // b1
     0xdf70a82422212020, // c1
@@ -465,7 +465,7 @@ const bbQueenMoves = [_]bitboard{
     0x81412111090503fe, // h8
 };
 
-const bbKingMoves = [_]bitboard{
+pub const bbKingMoves = [_]bitboard{
     0x40c0000000000000, // a1
     0xa0e0000000000000, // b1
     0x5070000000000000, // c1

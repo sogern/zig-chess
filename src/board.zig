@@ -34,7 +34,7 @@ pub const Board = packed struct {
     blackSquares: bitboard = 0, // all black pieces
     emptySquares: bitboard = 0xFFFFFFFFFFFFFFFF,
 
-    pub fn getBBForPiece(self: *Board, piece: Piece) !bitboard {
+    pub fn getBBForPiece(self: *const Board, piece: Piece) !bitboard {
         return switch (piece) {
             .WhiteKing => self.whiteKing,
             .WhiteQueen => self.whiteQueen,
@@ -68,6 +68,14 @@ pub const Board = packed struct {
             .BlackPawn => self.blackPawns = bb,
             else => return PieceError.InvalidPiece,
         }
+    }
+
+    pub fn getBBForColour(self: *const Board, colour: Colour) bitboard {
+        return switch (colour) {
+            .White => self.whiteSquares,
+            .Black => self.blackSquares,
+            else => 0,
+        };
     }
 
     fn calcConvenienceBBs(self: *Board) void {
@@ -234,22 +242,26 @@ pub const Board = packed struct {
         return out.items;
     }
 
-    pub fn printInternalBitboards(self: Board) void {
-        std.debug.print("White King:   {b:0>64}\n", .{self.whiteKing});
-        std.debug.print("White Queen:  {b:0>64}\n", .{self.whiteQueen});
-        std.debug.print("White Rooks:  {b:0>64}\n", .{self.whiteRooks});
-        std.debug.print("White Bishops:{b:0>64}\n", .{self.whiteBishops});
-        std.debug.print("White Knights:{b:0>64}\n", .{self.whiteKnights});
-        std.debug.print("White Pawns:  {b:0>64}\n", .{self.whitePawns});
-        std.debug.print("Black King:   {b:0>64}\n", .{self.blackKing});
-        std.debug.print("Black Queen:  {b:0>64}\n", .{self.blackQueen});
-        std.debug.print("Black Rooks:  {b:0>64}\n", .{self.blackRooks});
-        std.debug.print("Black Bishops:{b:0>64}\n", .{self.blackBishops});
-        std.debug.print("Black Knights:{b:0>64}\n", .{self.blackKnights});
-        std.debug.print("Black Pawns:  {b:0>64}\n", .{self.blackPawns});
-        std.debug.print("White Squares:{b:0>64}\n", .{self.whiteSquares});
-        std.debug.print("Black Squares:{b:0>64}\n", .{self.blackSquares});
-        std.debug.print("Empty Squares:{b:0>64}\n", .{self.emptySquares});
+    pub fn internalBitboards(self: Board) []const u8 {
+        const alloc = std.heap.page_allocator;
+        var out = std.ArrayList(u8).initCapacity(alloc, (15 + 64) * 15) catch unreachable;
+        var buffer: [100]u8 = undefined;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White King:   {b:0>64}\n", .{self.whiteKing}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Queen:  {b:0>64}\n", .{self.whiteQueen}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Rooks:  {b:0>64}\n", .{self.whiteRooks}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Bishops:{b:0>64}\n", .{self.whiteBishops}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Knights:{b:0>64}\n", .{self.whiteKnights}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Pawns:  {b:0>64}\n", .{self.whitePawns}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black King:   {b:0>64}\n", .{self.blackKing}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Queen:  {b:0>64}\n", .{self.blackQueen}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Rooks:  {b:0>64}\n", .{self.blackRooks}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Bishops:{b:0>64}\n", .{self.blackBishops}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Knights:{b:0>64}\n", .{self.blackKnights}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Pawns:  {b:0>64}\n", .{self.blackPawns}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White Squares:{b:0>64}\n", .{self.whiteSquares}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Black Squares:{b:0>64}\n", .{self.blackSquares}) catch unreachable) catch unreachable;
+        out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "Empty Squares:{b:0>64}\n", .{self.emptySquares}) catch unreachable) catch unreachable;
+        return out.items;
     }
 
     /// toFEN returns the board in Forsyth-Edwards Notation.
@@ -332,9 +344,9 @@ pub const Board = packed struct {
         if (m.hasTag(EnPassant)) {
             const epBitmask = Square.squareBit(@intCast(m.s2.s));
             if (p1.colour() == .White) {
-                self.bbBlackPawns &= ~(epBitmask << 8);
+                self.blackPawns &= ~(epBitmask << 8);
             } else {
-                self.bbWhitePawns &= ~(epBitmask >> 8);
+                self.whitePawns &= ~(epBitmask >> 8);
             }
         }
 
@@ -342,19 +354,23 @@ pub const Board = packed struct {
         if (m.hasTag(KingSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteKingSideRookSquare().s) | Square.squareBit(Square.F1);
+                    self.whiteRooks = (self.whiteRooks & ~Square.squareBit(@as(usize, @intCast(cr.whiteKingSideRookSquare().s)))) | Square.squareBit(Square.F1);
                 },
                 .Black => {
-                    self.bbBlackRooks &= ~Square.squareBit(cr.blackKingSideRookSquare().s) | Square.squareBit(Square.F8);
+                    self.blackRooks = (self.blackRooks & ~Square.squareBit(@as(usize, @intCast(cr.blackKingSideRookSquare().s)))) | Square.squareBit(Square.F8);
+                },
+                .None => {
                 }
             }
         } else if (m.hasTag(QueenSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.bbWhiteRooks &= ~Square.squareBit(cr.whiteQueenSideRookSquare().s) | Square.squareBit(Square.D1);
+                    self.whiteRooks = (self.whiteRooks & ~Square.squareBit(@as(usize, @intCast(cr.whiteQueenSideRookSquare().s)))) | Square.squareBit(Square.D1);
                 },
                 .Black => {
-                    self.bbBlackRooks &= ~Square.squareBit(cr.blackQueenSideRookSquare().s) | Square.squareBit(Square.D8);
+                    self.blackRooks = (self.blackRooks & ~Square.squareBit(@as(usize, @intCast(cr.blackQueenSideRookSquare().s)))) | Square.squareBit(Square.D8);
+                },
+                .None => {
                 }
             }
         }

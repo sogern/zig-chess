@@ -37,6 +37,11 @@ pub const Square = struct {
         return .{ .s = @intCast(out), .r = @intCast(rank), .f = @intCast(file) };
     }
 
+    pub fn getBitboard(self: Square) u64 {
+        if (self.s == NoSquare) return 0;
+        return squareBits[@as(usize, @intCast(self.s))];
+    }
+
     pub fn toString(self: Square) []const u8 {
         if (self.s == NoSquare) return "";
         return squareStrings[@as(usize, @intCast(self.s))];

@@ -14,7 +14,7 @@ pub const CastlingSide = enum(u8) {
 
 /// CastlingRights holds four u8 values representing the right for each colour and side to perform castling.
 /// It also holds the starting file of the king,
-/// and a boolean indicating whether the castling rights are in standard FEN notation or X-FEN notation for Chess960.
+/// and whether the castling rights are in standard FEN notation or X-FEN notation for Chess960.
 pub const CastlingRights = packed struct {
     whiteKingSide: u8 = ' ',
     whiteQueenSide: u8 = ' ',
@@ -22,6 +22,7 @@ pub const CastlingRights = packed struct {
     blackQueenSide: u8 = ' ',
 
     kingFile: u8 = 0,
+
     standard: bool = true,
 
     // inline fn validFile(f: i8) bool {
@@ -38,6 +39,22 @@ pub const CastlingRights = packed struct {
     //         return rf < kf;
     //     }
     // }
+
+    pub fn canCastle(self: CastlingRights, colour: Colour, side: CastlingSide) bool {
+        return switch (colour) {
+            .White => switch (side) {
+                .Kingside => self.whiteKingSide != ' ',
+                .Queenside => self.whiteQueenSide != ' ',
+                else => false,
+            },
+            .Black => switch (side) {
+                .Kingside => self.blackKingSide != ' ',
+                .Queenside => self.blackQueenSide != ' ',
+                else => false,
+            },
+            else => false,
+        };
+    }
 
     pub fn whiteKingSideRookSquare(self: CastlingRights) Square {
         return switch (self.whiteKingSide) {
@@ -125,33 +142,35 @@ pub const CastlingRights = packed struct {
                 else => return CastlingError.InvalidCastlingRights,
             }
         }
-        // std.debug.print("Parsed castling rights: white={b}, black={b}, c960={s}\n", .{white, black, if (c960) "true" else "false"});
+
         return .{
-            .whiteKingSide = whiteKingSide, .whiteQueenSide = whiteQueenSide,
-            .blackKingSide = blackKingSide, .blackQueenSide = blackQueenSide,
+            .whiteKingSide = whiteKingSide,
+            .whiteQueenSide = whiteQueenSide,
+            .blackKingSide = blackKingSide,
+            .blackQueenSide = blackQueenSide,
             .kingFile = @as(u8, kingFile),
             .standard = standard
         };
     }
 
     pub fn toString(self: CastlingRights) []const u8 {
-        var result: [4]u8 = .{ 0, 0, 0, 0 };
+        var buf: [4]u8 = undefined;
         var idx: usize = 0;
 
         // White castling rights
         if (self.whiteKingSide != ' ') {
             if (self.standard) {
-                result[idx] = 'K';
+                buf[idx] = 'K';
             } else {
-                result[idx] = self.whiteKingSide;
+                buf[idx] = self.whiteKingSide;
             }
             idx += 1;
         }
         if (self.whiteQueenSide != ' ') {
             if (self.standard) {
-                result[idx] = 'Q';
+                buf[idx] = 'Q';
             } else {
-                result[idx] = self.whiteQueenSide;
+                buf[idx] = self.whiteQueenSide;
             }
             idx += 1;
         }
@@ -159,17 +178,17 @@ pub const CastlingRights = packed struct {
         // Black castling rights
         if (self.blackKingSide != ' ') {
             if (self.standard) {
-                result[idx] = 'k';
+                buf[idx] = 'k';
             } else {
-                result[idx] = self.blackKingSide;
+                buf[idx] = self.blackKingSide;
             }
             idx += 1;
         }
         if (self.blackQueenSide != ' ') {
             if (self.standard) {
-                result[idx] = 'q';
+                buf[idx] = 'q';
             } else {
-                result[idx] = self.blackQueenSide;
+                buf[idx] = self.blackQueenSide;
             }
             idx += 1;
         }
@@ -177,7 +196,11 @@ pub const CastlingRights = packed struct {
         if (idx == 0) {
             return "-";
         }
-        return result[0..idx];
+
+        const alloc = std.heap.page_allocator;
+        var out = std.ArrayList(u8).initCapacity(alloc, 4) catch unreachable;
+        out.appendSlice(alloc, buf[0..idx]) catch unreachable;
+        return out.items;
     }
 
     pub fn removeAllCastlingRights(self: CastlingRights, colour: Colour) !CastlingRights {
