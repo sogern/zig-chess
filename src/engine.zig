@@ -403,6 +403,55 @@ test "Add tags" {
 			.expectedTags = KingSideCastle | Check,
 			.fen =  "r4b1r/ppp3pp/8/4p3/2Pq4/3P4/PP2QPPP/2k1K2R w K - 0 18",
 		},
+        .{
+            .name = "move with king side castle and check",
+            .move = Move{.s1 = Square.SqE1, .s2 = Square.SqG1},
+            .expectedTags = KingSideCastle | Check,
+            .fen = "r4b1r/ppp3pp/8/4p3/2Pq4/3P1Q2/PP3PPP/1k2K2R w K - 2 19",
+        },
+        .{
+            .name = "move with check",
+            .move = Move{.s1 = Square.SqD7, .s2 = Square.SqA4},
+            .expectedTags = Check,
+            .fen = "rn2k1r1/ppqb4/4p1n1/3pPp1Q/8/P1PP4/4NPPP/R1BK1B1R b q - 0 14",
+        },
+        .{
+            .name = "move leaves king in check",
+            .move = Move{.s1 = Square.SqG6, .s2 = Square.SqF8},
+            .expectedTags = InCheck,
+            .fen = "r3k1r1/ppq5/2n1p1n1/3p1pBQ/b2P3P/P1P5/4NPP1/R3KB1R b q - 0 18",
+        },
+        .{
+            .name = "capture move",
+            .move = Move{.s1 = Square.SqG2, .s2 = Square.SqG3},
+            .expectedTags = Capture,
+            .fen = "8/7p/3k2p1/8/2p2P2/R5bP/6K1/4r3 w - - 0 44",
+        },
+        .{
+            .name = "normal move without tags",
+            .move = Move{.s1 = Square.SqD6, .s2 = Square.SqD5},
+            .expectedTags = 0,
+            .fen = "8/7p/3k2p1/8/2p2P2/R5KP/8/4r3 b - - 0 44",
+        },
+        .{
+            .name = "en passant move",
+            .move = Move{.s1 = Square.SqE4, .s2 = Square.SqF3},
+            .expectedTags = EnPassant | Check,
+            .fen = "r3k2r/pbppqpb1/1pn3p1/7p/1N2pPn1/1PP4N/PB1P2PP/2QRKR2 b kq f3 0 1",
+        },
+        .{
+            .name = "normal move without tags",
+            .move = Move{.s1 = Square.SqB7, .s2 = Square.SqA6},
+            .expectedTags = 0,
+            .fen = "r3k2r/pbppqpb1/1pn3p1/7p/1N2pPn1/1PP4N/PB1P2PP/2QRKR2 b kq f3 0 1",
+        },
+        .{
+            .name = "en passant move with check",
+            .move = Move{.s1 = Square.SqE4, .s2 = Square.SqF3},
+            .expectedTags = EnPassant | Check,
+            .fen = "r3k1r1/pbppqpb1/1pn3p1/7p/1N2pPn1/1PP4N/PB1P2PP/2QRK1R1 b q f3 0 2",
+        },
+
     };
 
     for (testCases) |tc| {
@@ -410,7 +459,7 @@ test "Add tags" {
         std.debug.print("Running test: {s}\nPosition before:\n{s}", .{tc.name, pos.toString()});
         var m = tc.move;
         try Engine.addTags(&m, &pos);
-        std.debug.print("Position after:\n{s}", .{pos.toString()});
+        // std.debug.print("Position after:\n{s}", .{pos.toString()});
         try std.testing.expectEqual(tc.expectedTags, m.tags);
     }
 }
