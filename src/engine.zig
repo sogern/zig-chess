@@ -284,11 +284,8 @@ const Engine = struct {
     /// pawnMoves returns a bitboard of possible moves for a pawn on the given square in the given position.
     /// The function considers single and double forward moves, as well as diagonal and en passant captures.
     fn pawnMoves(pos: *const Position, sq: Square) bitboard {
-        const sqBB = Square.squareBit(@as(usize, @intCast(sq.s)));
-        var bbEnPassant: bitboard = 0;
-        if (pos.enPassantSquare != .None) {
-            bbEnPassant = Square.squareBit(@as(usize, @intCast(pos.enPassantSquare.s)));
-        }
+        const sqBB = sq.getBitboard();
+        const bbEnPassant: bitboard = pos.enPassantSquare.getBitboard();
         if (pos.turn == .White) {
             const capRight = ((sqBB & ~bbFileH & ~bbRank8) >> 9) & (pos.board.blackSquares | bbEnPassant);
             const capLeft = ((sqBB & ~bbFileA & ~bbRank8) >> 7) & (pos.board.blackSquares | bbEnPassant);
@@ -307,7 +304,7 @@ const Engine = struct {
     /// diaAttack returns a bitboard of possible diagonal moves
     /// for a sliding piece, considering occupied squares as blocking further movement.
     fn diaAttack(occupied: bitboard, sq: Square) bitboard {
-        const sqBB = Square.squareBit(@as(usize, @intCast(sq.s)));
+        const sqBB = sq.getBitboard();
         const dMask = bbDiagonals[@as(usize, @intCast(sq.s))];
         const adMask = bbAntiDiagonals[@as(usize, @intCast(sq.s))];
         return linearAttack(occupied, sqBB, dMask) | linearAttack(occupied, sqBB, adMask);
@@ -316,7 +313,7 @@ const Engine = struct {
     /// hvAttack returns a bitboard of possible horizontal and vertical moves
     /// for a sliding piece, considering occupied squares as blocking further movement.
     fn hvAttack(occupied: bitboard, sq: Square) bitboard {
-        const sqBB = Square.squareBit(@as(usize, @intCast(sq.s)));
+        const sqBB = sq.getBitboard();
         const rankMask = bbRanks[(@as(usize, @intCast(sq.r)))];
         const fileMask = bbFiles[@as(usize, @intCast(sq.f))];
         return linearAttack(occupied, sqBB, rankMask) | linearAttack(occupied, sqBB, fileMask);

@@ -354,10 +354,10 @@ pub const Board = packed struct {
         if (m.hasTag(KingSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.whiteRooks = (self.whiteRooks & ~Square.squareBit(@as(usize, @intCast(cr.whiteKingSideRookSquare().s)))) | Square.squareBit(Square.F1);
+                    self.whiteRooks = (self.whiteRooks & ~cr.whiteKingSideRookSquare().getBitboard()) | Square.squareBit(Square.F1);
                 },
                 .Black => {
-                    self.blackRooks = (self.blackRooks & ~Square.squareBit(@as(usize, @intCast(cr.blackKingSideRookSquare().s)))) | Square.squareBit(Square.F8);
+                    self.blackRooks = (self.blackRooks & ~cr.blackKingSideRookSquare().getBitboard()) | Square.squareBit(Square.F8);
                 },
                 .None => {
                 }
@@ -365,10 +365,10 @@ pub const Board = packed struct {
         } else if (m.hasTag(QueenSideCastle)) {
             switch (p1.colour()) {
                 .White => {
-                    self.whiteRooks = (self.whiteRooks & ~Square.squareBit(@as(usize, @intCast(cr.whiteQueenSideRookSquare().s)))) | Square.squareBit(Square.D1);
+                    self.whiteRooks = (self.whiteRooks & ~cr.whiteQueenSideRookSquare().getBitboard()) | Square.squareBit(Square.D1);
                 },
                 .Black => {
-                    self.blackRooks = (self.blackRooks & ~Square.squareBit(@as(usize, @intCast(cr.blackQueenSideRookSquare().s)))) | Square.squareBit(Square.D8);
+                    self.blackRooks = (self.blackRooks & ~cr.blackQueenSideRookSquare().getBitboard()) | Square.squareBit(Square.D8);
                 },
                 .None => {
                 }

@@ -551,7 +551,7 @@ fn printPieceMoves(moves: []pieceMove) void {
                 std.debug.print("Invalid to square: {s}\n", .{to_square});
                 return;
             }
-            bb |= Square.squareBit(@as(usize, @intCast(ts.s)));
+            bb |= ts.getBitboard();
         }
 
         std.debug.print("0x{x:0>16}, // {s}\n", .{ bb, fs.toString() });
@@ -771,7 +771,7 @@ pub fn drawBitboard(bb: bitboard) []const u8 {
         for (0..8) |file| {
             const f: i8 = @intCast(file);
             const sq = Square.fromFileAndRank(f, r);
-            const bbForSquare = Square.squareBit(@as(usize, @intCast(sq.s)));
+            const bbForSquare = sq.getBitboard();
             if (bb & bbForSquare != 0) {
                 bufs[rank][file * 2 + 2] = 'X';
             } else {
@@ -788,7 +788,7 @@ fn debugBitboard(bb: bitboard, name: []const u8) void {
 }
 
 test "Debug bitboard" {
-    const sqBB: bitboard = Square.squareBit(@as(usize, @intCast(Square.SqB4.s)));
+    const sqBB: bitboard = Square.SqB4.getBitboard();
     debugBitboard(sqBB, "sqBB");
     // const occupied: bitboard = 0x0000004800000008;
     const occupied: bitboard = 0x10004800000800;
