@@ -65,63 +65,63 @@ pub const bbRookMoves: [64]bitboard = @import("bitboard/rookMoves.zon");
 pub const bbQueenMoves: [64]bitboard = @import("bitboard/queenMoves.zon");
 pub const bbKingMoves: [64]bitboard = @import("bitboard/kingMoves.zon");
 
-const pieceMove = struct {
-    from_square: [2]u8,
-    to_squares: [][2]u8,
-};
+// const pieceMove = struct {
+//     from_square: [2]u8,
+//     to_squares: [][2]u8,
+// };
 
-fn printPieceMoves(moves: []pieceMove) void {
-    for (moves) |km| {
-        const fs = Square.fromString(km.from_square[0..]);
-        if (fs.equals(Square.None)) {
-            std.debug.print("Invalid from square: {s}\n", .{km.from_square});
-            return;
-        }
-        var bb: bitboard = 0;
-        for (km.to_squares) |to_square| {
-            const ts = Square.fromString(to_square[0..]);
-            if (ts.equals(Square.None)) {
-                std.debug.print("Invalid to square: {s}\n", .{to_square});
-                return;
-            }
-            bb |= ts.getBitboard();
-        }
+// fn printPieceMoves(moves: []pieceMove) void {
+//     for (moves) |km| {
+//         const fs = Square.fromString(km.from_square[0..]);
+//         if (fs.equals(Square.None)) {
+//             std.debug.print("Invalid from square: {s}\n", .{km.from_square});
+//             return;
+//         }
+//         var bb: bitboard = 0;
+//         for (km.to_squares) |to_square| {
+//             const ts = Square.fromString(to_square[0..]);
+//             if (ts.equals(Square.None)) {
+//                 std.debug.print("Invalid to square: {s}\n", .{to_square});
+//                 return;
+//             }
+//             bb |= ts.getBitboard();
+//         }
 
-        std.debug.print("0x{x:0>16}, // {s}\n", .{ bb, fs.toString() });
-    }
-}
+//         std.debug.print("0x{x:0>16}, // {s}\n", .{ bb, fs.toString() });
+//     }
+// }
 
-fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove {
-    const alloc = std.heap.page_allocator;
-    var moves = try std.ArrayList(pieceMove).initCapacity(alloc, init_capacity);
+// fn generatePieceMoves(move_offsets: [][2]i8, init_capacity: usize) ![]pieceMove {
+//     const alloc = std.heap.page_allocator;
+//     var moves = try std.ArrayList(pieceMove).initCapacity(alloc, init_capacity);
 
-    const files = "abcdefgh";
-    const ranks = "12345678";
+//     const files = "abcdefgh";
+//     const ranks = "12345678";
 
-    for (ranks) |rank_char| {
-        const rank_idx = @as(i8, @intCast(rank_char - '1'));
-        for (files) |file_char| {
-            const f_idx = @as(i8, @intCast(file_char - 'a'));
-            const from_square = [_]u8{ file_char, rank_char };
-            var to_squares = try std.ArrayList([2]u8).initCapacity(alloc, init_capacity);
-            for (move_offsets) |move| {
-                const f = f_idx + move[0];
-                const r = rank_idx + move[1];
-                if (f >= 0 and f < 8 and r >= 0 and r < 8) {
-                    const to_square = [_]u8{ @as(u8, @intCast(f + 'a')), @as(u8, @intCast(r + '1')) };
-                    try to_squares.append(alloc, to_square);
-                }
-            }
-            const ts = try to_squares.toOwnedSlice(alloc);
-            try moves.append(alloc, pieceMove{
-                .from_square = from_square,
-                .to_squares = ts,
-            });
-        }
-    }
+//     for (ranks) |rank_char| {
+//         const rank_idx = @as(i8, @intCast(rank_char - '1'));
+//         for (files) |file_char| {
+//             const f_idx = @as(i8, @intCast(file_char - 'a'));
+//             const from_square = [_]u8{ file_char, rank_char };
+//             var to_squares = try std.ArrayList([2]u8).initCapacity(alloc, init_capacity);
+//             for (move_offsets) |move| {
+//                 const f = f_idx + move[0];
+//                 const r = rank_idx + move[1];
+//                 if (f >= 0 and f < 8 and r >= 0 and r < 8) {
+//                     const to_square = [_]u8{ @as(u8, @intCast(f + 'a')), @as(u8, @intCast(r + '1')) };
+//                     try to_squares.append(alloc, to_square);
+//                 }
+//             }
+//             const ts = try to_squares.toOwnedSlice(alloc);
+//             try moves.append(alloc, pieceMove{
+//                 .from_square = from_square,
+//                 .to_squares = ts,
+//             });
+//         }
+//     }
 
-    return try moves.toOwnedSlice(alloc);
-}
+//     return try moves.toOwnedSlice(alloc);
+// }
 
 // test "Generate files" {
 //     const alloc = std.heap.page_allocator;
