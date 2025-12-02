@@ -1,5 +1,6 @@
 const std = @import("std");
 const Position = @import("position.zig").Position;
+const Move = @import("move.zig").Move;
 const decodeFEN = @import("fen.zig").decodeFEN;
 
 /// An Outcome is the result of a game.
@@ -45,4 +46,8 @@ pub const Game = struct {
     tagPairs: TagPairs = TagPairs.init(std.heap.page_allocator),
     rootMove: ?*Move = null,
     currentMove: ?*Move = null,
+    method: Method = .NoMethod,
+    ignoreFivefoldRepetitionDraw: bool = false,
+    ignoreSeventyFiveMoveRuleDraw: bool = false,
+    ignoreInsufficientMaterialDraw: bool = false,
 };
