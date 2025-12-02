@@ -1,3 +1,7 @@
+const std = @import("std");
+const Position = @import("position.zig").Position;
+const decodeFEN = @import("fen.zig").decodeFEN;
+
 /// An Outcome is the result of a game.
 pub const Outcome = enum(u8) {
     UnknownOutcome,
@@ -17,6 +21,9 @@ pub const Outcome = enum(u8) {
     }
 };
 
+/// TagPairs represent a collection of PGN tag pairs.
+pub const TagPairs = std.StringHashMapUnmanaged([]const u8);
+
 /// A Method is what generated the outcome.
 pub const Method = enum(u8) {
     Checkmate,
@@ -29,4 +36,13 @@ pub const Method = enum(u8) {
     SeventyFiveMoveRule,
     InsufficientMaterial,
     NoMethod,
+};
+
+/// A Game represents a single chess game.
+pub const Game = struct {
+    pos: *Position,
+    outcome: Outcome,
+    tagPairs: TagPairs = TagPairs.init(std.heap.page_allocator),
+    rootMove: ?*Move = null,
+    currentMove: ?*Move = null,
 };
