@@ -103,31 +103,31 @@ pub const Board = packed struct {
     }
 
     pub inline fn isSquareOccupied(self: Board, square: Square) bool {
-        const bit: bitboard = Square.squareBit(@intCast(square.s));
-        return (self.whiteSquares & bit) != 0 or (self.blackSquares & bit) != 0;
+        const bb: bitboard = square.getBitboard();
+        return (self.whiteSquares & bb) != 0 or (self.blackSquares & bb) != 0;
     }
 
     pub inline fn isSquareEmpty(self: Board, square: Square) bool {
-        const bit: bitboard = Square.squareBit(@intCast(square.s));
-        return (self.emptySquares & bit) != 0;
+        const bb: bitboard = square.getBitboard();
+        return (self.emptySquares & bb) != 0;
     }
 
     pub fn getPieceOnSquare(self: Board, square: Square) Piece {
-        const bit: bitboard = Square.squareBit(@intCast(square.s));
-        if ((self.whiteSquares & bit) != 0) {
-            if ((self.whiteKing & bit) != 0) return Piece.WhiteKing;
-            if ((self.whiteQueen & bit) != 0) return Piece.WhiteQueen;
-            if ((self.whiteRooks & bit) != 0) return Piece.WhiteRook;
-            if ((self.whiteBishops & bit) != 0) return Piece.WhiteBishop;
-            if ((self.whiteKnights & bit) != 0) return Piece.WhiteKnight;
-            if ((self.whitePawns & bit) != 0) return Piece.WhitePawn;
-        } else if ((self.blackSquares & bit) != 0) {
-            if ((self.blackKing & bit) != 0) return Piece.BlackKing;
-            if ((self.blackQueen & bit) != 0) return Piece.BlackQueen;
-            if ((self.blackRooks & bit) != 0) return Piece.BlackRook;
-            if ((self.blackBishops & bit) != 0) return Piece.BlackBishop;
-            if ((self.blackKnights & bit) != 0) return Piece.BlackKnight;
-            if ((self.blackPawns & bit) != 0) return Piece.BlackPawn;
+        const bb: bitboard = square.getBitboard();
+        if ((self.whiteSquares & bb) != 0) {
+            if ((self.whiteKing & bb) != 0) return Piece.WhiteKing;
+            if ((self.whiteQueen & bb) != 0) return Piece.WhiteQueen;
+            if ((self.whiteRooks & bb) != 0) return Piece.WhiteRook;
+            if ((self.whiteBishops & bb) != 0) return Piece.WhiteBishop;
+            if ((self.whiteKnights & bb) != 0) return Piece.WhiteKnight;
+            if ((self.whitePawns & bb) != 0) return Piece.WhitePawn;
+        } else if ((self.blackSquares & bb) != 0) {
+            if ((self.blackKing & bb) != 0) return Piece.BlackKing;
+            if ((self.blackQueen & bb) != 0) return Piece.BlackQueen;
+            if ((self.blackRooks & bb) != 0) return Piece.BlackRook;
+            if ((self.blackBishops & bb) != 0) return Piece.BlackBishop;
+            if ((self.blackKnights & bb) != 0) return Piece.BlackKnight;
+            if ((self.blackPawns & bb) != 0) return Piece.BlackPawn;
         }
         return Piece.None;
     }
@@ -317,7 +317,7 @@ pub const Board = packed struct {
             return BoardError.SquareEmpty;
         }
         const p2 = self.getPieceOnSquare(m.s2);
-        const s2bitmask = Square.squareBit(@intCast(m.s2.s));
+        const s2bitmask = m.s2.getBitboard();
 
         // Move piece from s1 to s2
         if (p2 != Piece.None) {
@@ -327,7 +327,7 @@ pub const Board = packed struct {
         }
 
         // Move what was on s1 to s2
-        const s1bitmask = Square.squareBit(@intCast(m.s1.s));
+        const s1bitmask = m.s1.getBitboard();
         const p1BB_ = try self.getBBForPiece(p1);
         try self.setBBForPiece(p1, (p1BB_ & ~s1bitmask) | s2bitmask);
 
@@ -342,7 +342,7 @@ pub const Board = packed struct {
 
         // Remove captured en passant piece
         if (m.hasTag(EnPassant)) {
-            const epBitmask = Square.squareBit(@intCast(m.s2.s));
+            const epBitmask = m.s2.getBitboard();
             if (p1.colour() == .White) {
                 self.blackPawns &= ~(epBitmask << 8);
             } else {
