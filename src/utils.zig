@@ -34,3 +34,7 @@ pub inline fn isFile(ch: u8) bool {
 pub inline fn isRank(ch: u8) bool {
     return '1' <= ch and ch <= '8';
 }
+
+pub inline fn isUpper(ch: u8) bool {
+    return 'A' <= ch and ch <= 'Z';
+}
