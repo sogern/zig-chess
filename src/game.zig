@@ -41,13 +41,23 @@ pub const Method = enum(u8) {
 
 /// A Game represents a single chess game.
 pub const Game = struct {
+    alloc: std.mem.Allocator,
     pos: *Position,
-    outcome: Outcome,
-    tagPairs: TagPairs = TagPairs.init(std.heap.page_allocator),
-    rootMove: ?*Move = null,
-    currentMove: ?*Move = null,
+    outcome: Outcome = .UnknownOutcome,
+    tagPairs: TagPairs = TagPairs{},
+    rootMove: *Move,
+    currentMove: *Move,
     method: Method = .NoMethod,
     ignoreFivefoldRepetitionDraw: bool = false,
     ignoreSeventyFiveMoveRuleDraw: bool = false,
     ignoreInsufficientMaterialDraw: bool = false,
+
+    pub fn newGame(alloc: std.mem.Allocator, pos: *Position, rootMove: *Move, currentMove: *Move) *Game {
+        return &Game{
+            .alloc = alloc,
+            .pos = pos,
+            .rootMove = rootMove,
+            .currentMove = currentMove,
+        };
+    }
 };

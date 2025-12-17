@@ -81,6 +81,18 @@ pub const PieceType = enum(u8) {
     }
 };
 
+pub fn pieceTypeFromChar(c: u8) PieceType {
+    return switch (c) {
+        'K', 'k' => .King,
+        'Q', 'q' => .Queen,
+        'R', 'r' => .Rook,
+        'B', 'b' => .Bishop,
+        'N', 'n' => .Knight,
+        'P', 'p' => .Pawn,
+        else => .None,
+    };
+}
+
 pub const Colour = enum(u8) {
     White,
     Black,
