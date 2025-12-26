@@ -36,40 +36,7 @@ const TokenType = enum(u8) {
     DisambiguationSquare,   // Full square disambiguation, e.g. e8 in Qe8f7
 
     pub fn toString(self: TokenType) []const u8 {
-        return switch (self) {
-            .EOF => "EOF",
-            .Undefined => "Undefined",
-            .TagStart => "TagStart",
-            .TagEnd => "TagEnd",
-            .TagKey => "TagKey",
-            .TagValue => "TagValue",
-            .MoveNumber => "MoveNumber",
-            .Dot => "Dot",
-            .Ellipsis => "Ellipsis",
-            .Piece => "Piece",
-            .Square => "Square",
-            .CommentStart => "CommentStart",
-            .CommentEnd => "CommentEnd",
-            .CommentText => "CommentText",
-            .Result => "Result",
-            .Capture => "Capture",
-            .File => "File",
-            .Rank => "Rank",
-            .KingSideCastle => "KingSideCastle",
-            .QueenSideCastle => "QueenSideCastle",
-            .Promotion => "Promotion",
-            .PromotionPiece => "PromotionPiece",
-            .Check => "Check",
-            .Checkmate => "Checkmate",
-            .NAG => "NAG",
-            .VariationStart => "VariationStart",
-            .VariationEnd => "VariationEnd",
-            .CommandStart => "CommandStart",
-            .CommandName => "CommandName",
-            .CommandParam => "CommandParam",
-            .CommandEnd => "CommandEnd",
-            .DisambiguationSquare => "DisambiguationSquare",
-        };
+        return @tagName(self);
     }
 };
 
