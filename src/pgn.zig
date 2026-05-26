@@ -17,7 +17,16 @@ pub const PGN = struct {
 
 };
 
-const ParsedComment = struct {[]const u8, usize};
+const ParsedComment = struct { []const u8, usize };
+
+const ParsedCommands = std.StringHashMapUnmanaged([]const u8);
+
+pub const PGNParsingError = error{
+    UnexpectedTokenInComment,
+    UnexpectedTokenInCommand,
+    UnterminatedCommand,
+    UnterminatedVariation,
+};
 
 const Parser = struct {
     alloc: std.mem.Allocator,
@@ -166,6 +175,7 @@ const Parser = struct {
                     self.addMove(move);
                     ply += 1;
 
+                    // Collect all NAGs and comments that follow the move
                     while (true) {
                         const tok = self.currentToken();
                         switch (tok.@"type") {
@@ -185,6 +195,15 @@ const Parser = struct {
                             else => break,
                         }
                     }
+                },
+
+                .CommentStart => {
+                    // const comment, const commands = self.parseComment() catch |err| {
+                    //     return err;
+                    // };
+                    // // TODO: Move.commands, Move.comment
+                    // if (self.currentMove) {
+                    // }
                 },
 
                 .VariationStart => {
@@ -218,7 +237,7 @@ const Parser = struct {
                 if (m.hasTag(KingSideCastle)) {
                     move.s1 = m.s1;
                     move.s2 = m.s2;
-                    move.position = self.game.pos;
+                    move.position = self.game.pos; // TODO: copy?
                     if (m.hasTag(Check)) {
                         move.addTag(Check);
                     }
@@ -236,7 +255,7 @@ const Parser = struct {
                 if (m.hasTag(QueenSideCastle)) {
                     move.s1 = m.s1;
                     move.s2 = m.s2;
-                    move.position = self.game.pos;
+                    move.position = self.game.pos; // TODO: copy?
                     if (m.hasTag(Check)) {
                         move.addTag(Check);
                     }
@@ -323,5 +342,171 @@ const Parser = struct {
 
 
         return &move;
+    }
+
+    fn parseComment(_: *Parser) !ParsedComment {
+        // self.advance(); // consume CommentStart
+
+        // var comment: []const u8 = undefined;
+        // var commands = std.StringHashMapUnmanaged([]const u8){};
+
+        // while (self.currentToken().@"type" != .CommentEnd and self.pos < self.tokens.len) {
+        //     switch (self.currentToken().@"type") {
+        //         .CommandStart => {
+        //             const parsedCommands = self.parseCommand() catch |err| {
+        //                 return err;
+        //             };
+        //         },
+        //         .CommentText => {
+        //         },
+        //         else => {
+        //             return PGNParsingError.UnexpectedTokenInComment;
+        //         },
+        //     }
+        // }
+
+        // return ParsedComment{
+        //     .comment = comment,
+        //     .commands = commands,
+        // };
+    }
+
+    fn parseCommand(self: *Parser) !ParsedCommands {
+        var commands = std.StringHashMapUnmanaged([]const u8){};
+        var key : []const u8 = "";
+
+        self.advance(); // consume CommandStart
+
+        while (self.currentToken().@"type" != .CommandEnd and self.pos < self.tokens.len) {
+            switch (self.currentToken().@"type") {
+                .CommandName => {
+                    // First token in a command is the key
+                    key = self.currentToken().value;
+                },
+                .CommandParam => {
+                    // Second token is the value for the current key
+                    if (key.len > 0) {
+                        commands.put(self.alloc, key, self.currentToken().value) catch |err| {
+                            return err;
+                        };
+                        key = ""; // reset key for next command
+                    }
+                },
+                else => {
+                    return PGNParsingError.UnexpectedTokenInCommand;
+                },
+            }
+            self.advance();
+        }
+
+        if (self.pos >= self.tokens.len) {
+            return PGNParsingError.UnterminatedCommand;
+        }
+
+        return ParsedCommands{
+            .commands = commands,
+        };
+    }
+
+    fn parseVariation(self: *Parser, parentMoveNumber: u32, parentPly: i32) !void {
+        self.advance(); // consume VariationStart
+
+        // Save current state
+        const parentMove = self.currentMove;
+        const oldPos = self.game.pos;
+
+        // For variations at game start, we attach to root
+        var variationParent = self.game.rootMove;
+
+        // Find the move this variation should branch from
+        if (parentMove != self.game.rootMove and parentMove.parent != null) {   
+            variationParent = parentMove.parent;         
+            if (variationParent.parent != null and variationParent.parent.position != null) {
+                const copiedPos = variationParent.parent.position.copy();
+                self.game.pos = &copiedPos;
+                const newPos = self.game.pos.update(variationParent) catch |err| {
+                    return err;
+                };
+                self.game.pos = &newPos;
+            } else {
+                const copiedPos = self.game.rootMove.position.copy();
+                self.game.pos = &copiedPos;
+            }
+        } else {
+            const copiedPos = self.game.rootMove.position.copy();
+            self.game.pos = &copiedPos;
+        }
+
+        self.currentMove = variationParent;
+
+        var moveNumber = parentMoveNumber;
+        var ply = parentPly;
+        var isBlackMove = false;
+
+        while (self.currentToken().@"type" != .VariationEnd and self.pos < self.tokens.len) {
+            switch (self.currentToken().@"type") {
+                .MoveNumber => {
+                    const num = std.fmt.parseInt(u32, self.currentToken().value, 10) catch {
+                    };
+                },
+                .Ellipsis => {
+                },
+                .VariationStart => {
+                },
+                .Piece, .Square, .File, .KingSideCastle, .QueenSideCastle => {
+                },
+                else => {
+                    self.advance();
+                }
+            }
+        }
+
+        if (self.pos >= self.tokens.len) {
+            return PGNParsingError.UnterminatedVariation;
+        }
+
+        self.advance(); // consume VariationEnd
+
+        // Restore previous state
+        self.game.pos = oldPos;
+        self.currentMove = parentMove;
+        self.game.currentMove = self.currentMove;
+    }
+
+    fn parseResult(self: *Parser) void {
+        const map = std.StaticStringMap(u8, .{
+            .@"1-0" = 1,
+            .@"0-1" = 2,
+            .@"1/2-1/2" = 3,
+        });
+
+        switch (map.get(self.currentToken().value) orelse 0) {
+            1 => self.game.outcome = .WhiteWon,
+            2 => self.game.outcome = .BlackWon,
+            3 => self.game.outcome = .Draw,
+            else => self.game.outcome = .NoOutcome,
+        }
+
+        self.advance();
+    }
+
+    fn addMove(self: *Parser, move: *Move) !void {
+        // For the first move in the game
+        if (self.currentMove == self.game.rootMove) {
+            move.parent = self.game.rootMove;
+            try self.game.rootMove.addChild(self.alloc, move);
+        } else {
+            // Normal move in the main line
+            move.parent = self.currentMove;
+            try self.currentMove.addChild(self.alloc, move);
+        }
+
+        // Update position
+        const newPos = try self.game.pos.update(move);
+        self.game.pos = &newPos;
+        self.game.evaluatePositionStatus();
+
+        move.position = &(self.game.pos.copy());
+        self.currentMove = move;
     }
 };

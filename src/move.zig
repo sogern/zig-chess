@@ -31,7 +31,7 @@ pub const Move = struct {
     /// NAG (Numeric Annotation Glyph) for the move, if any. See: https://en.wikipedia.org/wiki/Portable_Game_Notation#Numeric_Annotation_Glyphs
     nag: ?u16 = null,
     /// Main line and variations
-    children: []Move = undefined,
+    children: std.ArrayListUnmanaged(*Move) = std.ArrayListUnmanaged(*Move){},
     number: u32 = 0,
     tags: MoveTag = 0,
     s1: Square = Square.None, // From square
@@ -60,6 +60,11 @@ pub const Move = struct {
             return (moveNumber - 1) * 2 + 1;
         }
         return moveNumber * 2;
+    }
+
+    // TODO: should allocator be part of Move?
+    pub fn addChild(self: *Move, alloc: std.mem.Allocator, child: *Move) !void {
+        self.children.append(alloc, child);
     }
 };
 
