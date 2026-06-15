@@ -7,9 +7,8 @@ const std = @import("std");
 /// The algorithm places the pieces as follows:
 /// 1) Bishops are placed on opposite-colored squares, based on the ID modulo 4 and truncated division by 4
 /// 2) Queen is then placed on an empty square, based on the ID modulo 6 and truncated division by 6
-/// 3) King, rooks and knights are placed on the remaining empty squares,
+/// 3) King, rooks and knights are placed on the remaining empty squares
 ///    based on the ID truncated division by 96 to select one of the 10 predefined arrangements
-///
 pub fn positionFromId(_id: usize) [8]u8 {
     var id = _id;
     if (id >= 960) id = 959; // Cap id to valid range
@@ -34,20 +33,19 @@ pub fn positionFromId(_id: usize) [8]u8 {
         pos.* = ' ';
     }
 
-    // Place bishops on opposite-coloured squares
-    // Step 1: select white square (odd index) bishop
+    // Step 1: Place white square (odd index) bishop
     const step1Mod = id % 4; // increments every ID and repeats every 4th, yielding values 0 to 3
     const step1Trunc = id / 4; // increments every 4th ID, yielding values 0 to 239
     const whiteBishopPos = [4]u8{ 1, 3, 5, 7 };
     output[whiteBishopPos[step1Mod]] = 'b';
 
-    // Step 2: select black square (even index) bishop
+    // Step 2: Place black square (even index) bishop
     const step2Mod = step1Trunc % 4; // increments every 4th ID and repeats every 16th, yelding values 0 to 3
     const step2Trunc = step1Trunc / 4; // increments every 16th ID, yelding values 0 to 59
     const blackBishopPos = [4]u8{ 0, 2, 4, 6 };
     output[blackBishopPos[step2Mod]] = 'b';
 
-    // Step 3: place the queen
+    // Step 3: Place the queen
     const step3Mod = step2Trunc % 6; // increments every 16th ID and repeats every 96th, yielding values 0 to 5
     const step3Trunc = step2Trunc / 6; // increments every 96th ID, yielding values 0 to 9 used to select krn array index
     var emptyCounter: usize = 0;
@@ -61,16 +59,8 @@ pub fn positionFromId(_id: usize) [8]u8 {
         }
     }
 
-    // Step 4: place the remaining 5 pieces; King, Rooks and Knights (KRN)
+    // Step 4: Place the remaining 5 pieces; King, Rooks and Knights (KRN)
     const step4 = krn[step3Trunc];
-    // for (step4) |p| {
-    //     for (&output) |*pos| {
-    //         if (pos.* == ' ') {
-    //             pos.* = p;
-    //             break;
-    //         }
-    //     }
-    // }
     var step4Index: usize = 0;
     for (&output) |*pos| {
         if (pos.* == ' ') {
@@ -79,14 +69,11 @@ pub fn positionFromId(_id: usize) [8]u8 {
         }
     }
 
-    // std.debug.print("Chess960 position for ID {}: {s} [{d}, {d}, {d}, {d}, {d}, {d}]\n", .{ _id, output, step1Mod, step1Trunc, step2Mod, step2Trunc, step3Mod, step3Trunc });
-
     return output;
 }
 
 test "chess960 unique positions" {
     // Check that all positions are unique
-    std.debug.print("Validating all chess960 positions are unique...\n", .{});
     var seen = std.AutoArrayHashMap([8]u8, bool).init(std.testing.allocator);
     defer seen.deinit();
 
@@ -99,7 +86,6 @@ test "chess960 unique positions" {
 
 test "chess960 valid positions" {
     // Check that all positions are valid
-    std.debug.print("Validating chess960 positions...\n", .{});
     for (0..960) |i| {
         const position = positionFromId(i);
         var white_sq_bishop: usize = 0;

@@ -1,11 +1,24 @@
 const std = @import("std");
 const Square = @import("square.zig").Square;
 
-/// A bitboard is a 64-bit integer representing the state of a chessboard.
-/// Each bit corresponds to a square on the board, indexed from 0 to 63,
+/// A bitboard is a 64-bit unsigned integer representing a chessboard.
+/// Each bit corresponds to a square on the board indexed from 0 to 63,
 /// starting from the most significant bit (A1) to the least significant bit (H8).
 pub const bitboard = u64;
 
+// Lookup tables for piece movement
+//
+//   a b c d e f g h
+// 8 . . . . . . . . LSB (A8)
+// 7 . . . . . . . .
+// 6 . . . . . . . .
+// 5 . . . . . . . .
+// 4 . . . . . . . .
+// 3 . . . . . . . .
+// 2 . . . . . . . .
+// 1 . . . . . . . . MSB (A1)
+
+/// Predefined bitboard masks for files and ranks
 pub const bbFileA: bitboard = 0x8080808080808080;
 pub const bbFileB: bitboard = 0x4040404040404040;
 pub const bbFileC: bitboard = 0x2020202020202020;
@@ -22,18 +35,6 @@ pub const bbRank5: bitboard = 0x00000000FF000000;
 pub const bbRank6: bitboard = 0x0000000000FF0000;
 pub const bbRank7: bitboard = 0x000000000000FF00;
 pub const bbRank8: bitboard = 0x00000000000000FF;
-
-// Lookup tables for piece movement
-//
-//   a b c d e f g h
-// 8 . . . . . . . . LSB byte (A8)
-// 7 . . . . . . . .
-// 6 . . . . . . . .
-// 5 . . . . . . . .
-// 4 . . . . . . . .
-// 3 . . . . . . . .
-// 2 . . . . . . . .
-// 1 . . . . . . . . MSB byte (A1)
 
 pub const bbFiles = [_]bitboard{
     bbFileA,
