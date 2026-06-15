@@ -3,20 +3,18 @@ const Square = @import("square.zig").Square;
 
 /// A bitboard is a 64-bit unsigned integer representing a chessboard.
 /// Each bit corresponds to a square on the board indexed from 0 to 63,
-/// starting from the most significant bit (A1) to the least significant bit (H8).
+/// starting from the most significant bit (A1) to the least significant bit (H8):
+///
+///   a b c d e f g h
+/// 8 . . . . . . . . LSB (A8)
+/// 7 . . . . . . . .
+/// 6 . . . . . . . .
+/// 5 . . . . . . . .
+/// 4 . . . . . . . .
+/// 3 . . . . . . . .
+/// 2 . . . . . . . .
+/// 1 . . . . . . . . MSB (A1)
 pub const bitboard = u64;
-
-// Lookup tables for piece movement
-//
-//   a b c d e f g h
-// 8 . . . . . . . . LSB (A8)
-// 7 . . . . . . . .
-// 6 . . . . . . . .
-// 5 . . . . . . . .
-// 4 . . . . . . . .
-// 3 . . . . . . . .
-// 2 . . . . . . . .
-// 1 . . . . . . . . MSB (A1)
 
 /// Predefined bitboard masks for files and ranks
 pub const bbFileA: bitboard = 0x8080808080808080;

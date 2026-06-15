@@ -1,6 +1,6 @@
 .{
-    .fingerprint = 0x5cebff35c20bb602,
     .name = .zig_chess,
+    .fingerprint = 0x5cebff35c20bb602,
     .version = "0.1.0",
     .dependencies = .{},
     .paths = .{

@@ -5,17 +5,17 @@ const std = @import("std");
 /// The function returns an array of 8 characters representing the starting position of the officer pieces.
 ///
 /// The algorithm places the pieces as follows:
-/// 1) Bishops are placed on opposite-colored squares, based on the ID modulo 4 and truncated division by 4
-/// 2) Queen is then placed on an empty square, based on the ID modulo 6 and truncated division by 6
+/// 1) Bishops are placed on opposite-colored squares based on the ID modulo 4 and truncated division by 4.
+/// 2) Queen is then placed on an empty square based on the ID modulo 6 and truncated division by 6.
 /// 3) King, rooks and knights are placed on the remaining empty squares
-///    based on the ID truncated division by 96 to select one of the 10 predefined arrangements
+///    based on the ID truncated division by 96 to select one of the 10 predefined arrangements.
 pub fn positionFromId(_id: usize) [8]u8 {
     var id = _id;
     if (id >= 960) id = 959; // Cap id to valid range
 
     // Predefined King-Rook-Knight arrangements
     // Ensures rooks on either side of the king
-    const krn = [10][5]u8{
+    const KRN = [10][5]u8{
         [_]u8{ 'n', 'n', 'r', 'k', 'r' },
         [_]u8{ 'n', 'r', 'n', 'k', 'r' },
         [_]u8{ 'n', 'r', 'k', 'n', 'r' },
@@ -47,7 +47,7 @@ pub fn positionFromId(_id: usize) [8]u8 {
 
     // Step 3: Place the queen
     const step3Mod = step2Trunc % 6; // increments every 16th ID and repeats every 96th, yielding values 0 to 5
-    const step3Trunc = step2Trunc / 6; // increments every 96th ID, yielding values 0 to 9 used to select krn array index
+    const step3Trunc = step2Trunc / 6; // increments every 96th ID, yielding values 0 to 9 used to select KRN array index
     var emptyCounter: usize = 0;
     for (&output) |*pos| {
         if (pos.* == ' ') {
@@ -60,7 +60,7 @@ pub fn positionFromId(_id: usize) [8]u8 {
     }
 
     // Step 4: Place the remaining 5 pieces; King, Rooks and Knights (KRN)
-    const step4 = krn[step3Trunc];
+    const step4 = KRN[step3Trunc];
     var step4Index: usize = 0;
     for (&output) |*pos| {
         if (pos.* == ' ') {
@@ -72,7 +72,7 @@ pub fn positionFromId(_id: usize) [8]u8 {
     return output;
 }
 
-test "chess960 unique positions" {
+test "unique positions" {
     // Check that all positions are unique
     var seen = std.AutoArrayHashMap([8]u8, bool).init(std.testing.allocator);
     defer seen.deinit();
@@ -84,7 +84,7 @@ test "chess960 unique positions" {
     try std.testing.expectEqual(960, seen.count());
 }
 
-test "chess960 valid positions" {
+test "valid positions" {
     // Check that all positions are valid
     for (0..960) |i| {
         const position = positionFromId(i);

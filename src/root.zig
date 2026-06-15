@@ -1,6 +1,7 @@
 const std = @import("std");
 
-pub const chess960 = @import("chess960.zig");
+pub const bb = @import("bitboard.zig");
+pub const bitboard = bb.bitboard;
 
 test {
     @import("std").testing.refAllDeclsRecursive(@This());
