@@ -7,15 +7,14 @@ pub const Token = union(enum) {
     tagEnd,                             // ]
     tagKey: []const u8,                 // e.g. "Date"
     tagValue: []const u8,               // e.g. "1997.05.03"
-    moveNum: u16,                       // 1, 2, 3, etc.
     halfMove: u16,                      // 1, 2, 3, etc.
-    dot,                                // .
-    ellipsis,                           // ...
     piece: u8,                          // P, N, B, R, Q, K
     file: u8,                           // a-h
     square: []const u8,                 // e.g. "e4"
     capture,                            // x
     promotion: u8,                      // =Q, =R, =B, =N
+    kingSideCastle,                     // O-O
+    queenSideCastle,                    // O-O-O
     check,                              // +
     checkmate,                          // #
     nag: u16,                           // e.g. $1, $2, $3, ?!, !!, etc.
@@ -40,15 +39,14 @@ pub const Token = union(enum) {
             .tagEnd => try writer.print("TagEnd", .{}),
             .tagKey => |s| try writer.print("TagKey({s})", .{s}),
             .tagValue => |s| try writer.print("TagValue({s})", .{s}),
-            .moveNum => |d| try writer.print("MoveNum({d})", .{d}),
             .halfMove => |d| try writer.print("HalfMove({d})", .{d}),
-            .dot => try writer.print("Dot", .{}),
-            .ellipsis => try writer.print("Ellipsis", .{}),
             .piece => |c| try writer.print("Piece({c})", .{c}),
             .file => |c| try writer.print("File({c})", .{c}),
             .square => |s| try writer.print("Square({s})", .{s}),
             .capture => try writer.print("Capture", .{}),
             .promotion => |c| try writer.print("Promotion({c})", .{c}),
+            .kingSideCastle => try writer.print("KingSideCastle", .{}),
+            .queenSideCastle => try writer.print("QueenSideCastle", .{}),
             .check => try writer.print("Check", .{}),
             .checkmate => try writer.print("Checkmate", .{}),
             .nag => |d| try writer.print("NAG({d})", .{d}),
@@ -250,6 +248,18 @@ pub const Iterator = struct {
                             self.pos += 1; // consume 'x'
                             self.state = .square_or_file;
                             return .{ .capture = {} };
+                        },
+                        'O' => {
+                            const m = self.readUntilWhitespace();
+                            if (std.mem.eql(u8, m, "O-O-O")) {
+                                self.state = .move_end;
+                                return .{ .queenSideCastle = {} };
+                            } else if (std.mem.eql(u8, m, "O-O")) {
+                                self.state = .move_end;
+                                return .{ .kingSideCastle = {} };
+                            }
+                            self.setError(LexerError.UnexpectedCharacter);
+                            return self.next();
                         },
                         else => {
                             self.setError(LexerError.UnexpectedCharacter);
