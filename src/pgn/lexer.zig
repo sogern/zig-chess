@@ -319,6 +319,11 @@ pub const Scanner = struct {
                             const nag = self.readUntilWhitespace();
                             return .{ .nag = nag };
                         },
+                        ')' => {
+                            self.pos += 1; // consume ')'
+                            self.state = .variation_end;
+                            return self.next();
+                        },
                         else => {
                             self.setError(LexerError.UnexpectedCharacter);
                             return self.next();
@@ -335,12 +340,17 @@ pub const Scanner = struct {
                         '{' => {
                             self.pos += 1; // consume '{'
                             self.state = .comment_start;
-                            return .{ .commentStart = {} };
+                            return self.next();
                         },
                         '(' => {
                             self.pos += 1; // consume '('
                             self.state = .variation_start;
-                            return .{ .variationStart = {} };
+                            return self.next();
+                        },
+                        ')' => {
+                            self.pos += 1; // consume ')'
+                            self.state = .variation_end;
+                            return .{ .moveEnd = {} };
                         },
                         else => {
                             // Handled below
@@ -366,13 +376,12 @@ pub const Scanner = struct {
                 self.skipWhitespace();
                 // TODO: Peek whether it is text or command
                 self.state = .comment_text;
-                return self.next();
+                return .{ .commentStart = {} };
             },
             .comment_text => {
                 const comment = self.readUntilAny("}");
-                const text = std.mem.trimEnd(u8, comment, &std.ascii.whitespace);
                 self.state = .comment_end;
-                return .{ .comment = text };
+                return .{ .comment = std.mem.trimEnd(u8, comment, &std.ascii.whitespace) };
             },
             .comment_end => {
                 if (self.peek(0) == '}') {
@@ -387,8 +396,24 @@ pub const Scanner = struct {
             .command_name => return error.NotImplemented,
             .command_param => return error.NotImplemented,
             .command_end => return error.NotImplemented,
-            .variation_start => return error.NotImplemented,
-            .variation_end => return error.NotImplemented,
+            .variation_start => {
+                self.skipWhitespace();
+                if (self.peek(0)) |c| {
+                    if (std.ascii.isDigit(c)) {
+                        self.state = .move_num;
+                    } else if (std.ascii.isAlphabetic(c)) {
+                        self.state = .move_start;
+                    } else {
+                        self.setError(LexerError.UnexpectedCharacter);
+                        return self.next();
+                    }
+                }
+                return .{ .variationStart = {} };
+            },
+            .variation_end => {
+                self.state = .move_end;
+                return .{ .variationEnd = {} };
+            },
             .result => {
                 const r = self.readUntilWhitespace();
                 self.state = .start;
@@ -460,7 +485,7 @@ pub const Scanner = struct {
 };
 
 /// Returns an iterator that produces `Token`s from input PGN.
-pub fn scanner(_: Self, pgn: []const u8) Scanner {
+pub fn scanner(pgn: []const u8) Scanner {
     return Scanner{ .buf = pgn };
 }
 
@@ -469,13 +494,13 @@ test scanner {
         // Set console output code page to UTF-8 on Windows to properly display Unicode characters
         _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
     }
-    const pgn = @embedFile("0002.pgn");
-    const lexer: Self = .{};
-    var s = lexer.scanner(pgn);
-    var t: Token = undefined;
+    const pgn = @embedFile("0001.pgn");
+    var s = Self.scanner(pgn);
     std.debug.print("Tokens:\n", .{});
-    while (t != .@"error" and t != .eof) {
+    var t: Token = undefined;
+    while (true) {
         t = try s.next();
         std.debug.print(" {f}\n", .{t});
+        if (t == .@"error" or t == .eof) break;
     }
 }
