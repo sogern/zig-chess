@@ -1,4 +1,5 @@
 const std = @import("std");
+const builtin = @import("builtin");
 
 pub const Self = @This();
 
@@ -7,7 +8,11 @@ pub const Token = union(enum) {
     tagEnd,                             // ]
     tagKey: []const u8,                 // e.g. "Date"
     tagValue: []const u8,               // e.g. "1997.05.03"
-    halfMove: u16,                      // 1, 2, 3, etc.
+    moveNum: u16,                       // 1, 2, 3, etc.
+    moveStart,                          // Start of a move
+    moveEnd,                            // End of a move
+    dot,                                // .
+    ellipsis,
     piece: u8,                          // P, N, B, R, Q, K
     file: u8,                           // a-h
     square: []const u8,                 // e.g. "e4"
@@ -17,7 +22,7 @@ pub const Token = union(enum) {
     queenSideCastle,                    // O-O-O
     check,                              // +
     checkmate,                          // #
-    nag: u16,                           // e.g. $1, $2, $3, ?!, !!, etc.
+    nag: []const u8,                    // e.g. $1, $2, $3, ?!, !!, etc.
     commentStart,                       // {
     commentEnd,                         // }
     comment: []const u8,                // Text
@@ -29,7 +34,6 @@ pub const Token = union(enum) {
     commandEnd,                         // ]
     commandName: []const u8,            // e.g. clk, eval
     commandParam: []const u8,           // Text
-    end,
     eof,
     @"error": LexerError,
 
@@ -39,7 +43,11 @@ pub const Token = union(enum) {
             .tagEnd => try writer.print("TagEnd", .{}),
             .tagKey => |s| try writer.print("TagKey({s})", .{s}),
             .tagValue => |s| try writer.print("TagValue({s})", .{s}),
-            .halfMove => |d| try writer.print("HalfMove({d})", .{d}),
+            .moveNum => |d| try writer.print("MoveNum({d})", .{d}),
+            .moveStart => try writer.print("MoveStart", .{}),
+            .moveEnd => try writer.print("MoveEnd", .{}),
+            .dot => try writer.print("Dot", .{}),
+            .ellipsis => try writer.print("Ellipsis", .{}),
             .piece => |c| try writer.print("Piece({c})", .{c}),
             .file => |c| try writer.print("File({c})", .{c}),
             .square => |s| try writer.print("Square({s})", .{s}),
@@ -49,7 +57,7 @@ pub const Token = union(enum) {
             .queenSideCastle => try writer.print("QueenSideCastle", .{}),
             .check => try writer.print("Check", .{}),
             .checkmate => try writer.print("Checkmate", .{}),
-            .nag => |d| try writer.print("NAG({d})", .{d}),
+            .nag => |s| try writer.print("NAG({s})", .{s}),
             .commentStart => try writer.print("CommentStart", .{}),
             .commentEnd => try writer.print("CommentEnd", .{}),
             .comment => |s| try writer.print("Comment({s})", .{s}),
@@ -61,7 +69,6 @@ pub const Token = union(enum) {
             .commandEnd => try writer.print("CommandEnd", .{}),
             .commandName => |s| try writer.print("CommandName({s})", .{s}),
             .commandParam => |s| try writer.print("CommandParam({s})", .{s}),
-            .end => try writer.print("End", .{}),
             .eof => try writer.print("EOF", .{}),
             .@"error" => |err| try writer.print("Error({})", .{err}),
         }
@@ -75,11 +82,10 @@ pub const LexerError = error {
     Unknown,
 };
 
-pub const Iterator = struct {
+pub const Scanner = struct {
     buf: []const u8,
     pos: usize = 0,
     state: State = .start,
-    halfMove: u16 = 0,
     lastError: ?LexerError = null,
 
     const State = enum(u8) {
@@ -103,7 +109,6 @@ pub const Iterator = struct {
         variation_start,
         variation_end,
         result,
-        end,
         eof,
         @"error",
     };
@@ -125,7 +130,7 @@ pub const Iterator = struct {
                         self.state = .move_or_result;
                     }
                 } else {
-                    self.setError(LexerError.UnexpectedEOF);
+                    self.state = .eof;
                 }
                 return self.next();
             },
@@ -213,6 +218,10 @@ pub const Iterator = struct {
                     self.setError(LexerError.UnexpectedEOF);
                     return self.next();
                 }
+                const moveNum = std.fmt.parseInt(u16, integer, 10) catch {
+                    self.setError(LexerError.ParseError);
+                    return self.next();
+                };
                 if (self.peek(0)) |c| {
                     if (c == '.') {
                         self.state = .punctuation;
@@ -220,7 +229,7 @@ pub const Iterator = struct {
                         self.setError(LexerError.UnexpectedCharacter);
                     }
                 }
-                return self.next();
+                return .{ .moveNum = moveNum };
             },
             .move_start => {
                 // Do we have at least 2 characters for a move?
@@ -229,8 +238,7 @@ pub const Iterator = struct {
                 } else {
                     self.state = .piece_or_square;
                 }
-                self.halfMove += 1;
-                return .{ .halfMove = self.halfMove };
+                return .{ .moveStart = {} };
             },
             .piece_or_square => {
                 if (self.peek(0)) |c| {
@@ -251,10 +259,10 @@ pub const Iterator = struct {
                         },
                         'O' => {
                             const m = self.readUntilWhitespace();
-                            if (std.mem.eql(u8, m, "O-O-O")) {
+                            if (m.len == 3 and std.mem.eql(u8, m, "O-O")) {
                                 self.state = .move_end;
                                 return .{ .queenSideCastle = {} };
-                            } else if (std.mem.eql(u8, m, "O-O")) {
+                            } else if (m.len == 5 and std.mem.eql(u8, m, "O-O-O")) {
                                 self.state = .move_end;
                                 return .{ .kingSideCastle = {} };
                             }
@@ -299,6 +307,18 @@ pub const Iterator = struct {
                             self.pos += 1; // consume 'x'
                             return .{ .capture = {} };
                         },
+                        '+', '#' => {
+                            self.pos += 1; // consume '+' or '#'
+                            if (c == '+') {
+                                return .{ .check = {} };
+                            } else {
+                                return .{ .checkmate = {} };
+                            }
+                        },
+                        '?', '!', '$' => {
+                            const nag = self.readUntilWhitespace();
+                            return .{ .nag = nag };
+                        },
                         else => {
                             self.setError(LexerError.UnexpectedCharacter);
                             return self.next();
@@ -310,29 +330,70 @@ pub const Iterator = struct {
             },
             .move_end => {
                 self.skipWhitespace();
+                if (self.peek(0)) |c| {
+                    switch (c) {
+                        '{' => {
+                            self.pos += 1; // consume '{'
+                            self.state = .comment_start;
+                            return .{ .commentStart = {} };
+                        },
+                        '(' => {
+                            self.pos += 1; // consume '('
+                            self.state = .variation_start;
+                            return .{ .variationStart = {} };
+                        },
+                        else => {
+                            // Handled below
+                        }
+                    }
+                }
                 self.state = .move_or_result;
-                return self.next();
+                return .{ .moveEnd = {} };
             },
             .punctuation => {
                 const p = self.readAll('.');
                 self.skipWhitespace();
                 self.state = .move_start;
-                if (!(p.len == 1 or p.len == 3)) {
-                    self.setError(LexerError.UnexpectedCharacter);
+                if (p.len == 1) {
+                    return .{ .dot = {} };
+                } else if (p.len == 3) {
+                    return .{ .ellipsis = {} };
                 }
+                self.setError(LexerError.UnexpectedCharacter);
                 return self.next();
             },
-            .comment_start => return error.NotImplemented,
-            .comment_text => return error.NotImplemented,
-            .comment_end => return error.NotImplemented,
+            .comment_start => {
+                self.skipWhitespace();
+                // TODO: Peek whether it is text or command
+                self.state = .comment_text;
+                return self.next();
+            },
+            .comment_text => {
+                const comment = self.readUntilAny("}");
+                const text = std.mem.trimEnd(u8, comment, &std.ascii.whitespace);
+                self.state = .comment_end;
+                return .{ .comment = text };
+            },
+            .comment_end => {
+                if (self.peek(0) == '}') {
+                    self.pos += 1; // consume '}'
+                    self.state = .move_end;
+                    return .{ .commentEnd = {} };
+                }
+                self.setError(LexerError.UnexpectedCharacter);
+                return self.next();
+            },
             .command_start => return error.NotImplemented,
             .command_name => return error.NotImplemented,
             .command_param => return error.NotImplemented,
             .command_end => return error.NotImplemented,
             .variation_start => return error.NotImplemented,
             .variation_end => return error.NotImplemented,
-            .result => return error.NotImplemented,
-            .end => return .{ .end = {} },
+            .result => {
+                const r = self.readUntilWhitespace();
+                self.state = .start;
+                return .{ .result = r };
+            },
             .eof => return .{ .eof = {} },
             .@"error" => 
                 return if (self.lastError) |err|
@@ -358,16 +419,6 @@ pub const Iterator = struct {
         }
         return null;
     }
-
-    // fn read(self: *@This(), count: usize) LexerError![]const u8 {
-    //     const start = self.pos;
-    //     self.pos += count;
-    //     if (self.pos <= self.buf.len) {
-    //         return self.buf[start..self.pos];
-    //     } else {
-    //         return .UnexpectedEOF;
-    //     }
-    // }
 
     /// Reads characters until any of the specified delimiters is found, and returns the substring.
     /// The position is advanced to the delimiter, or end of input, but the delimiter itself is not consumed.
@@ -409,18 +460,22 @@ pub const Iterator = struct {
 };
 
 /// Returns an iterator that produces `Token`s from input PGN.
-pub fn read(_: Self, pgn: []const u8) !Iterator {
-    return Iterator{ .buf = pgn };
+pub fn scanner(_: Self, pgn: []const u8) Scanner {
+    return Scanner{ .buf = pgn };
 }
 
-test read {
-    const pgn = @embedFile("0001.pgn");
+test scanner {
+    if (builtin.os.tag == .windows) {
+        // Set console output code page to UTF-8 on Windows to properly display Unicode characters
+        _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
+    }
+    const pgn = @embedFile("0002.pgn");
     const lexer: Self = .{};
-    var iter = try lexer.read(pgn);
-    var token = try iter.next();
+    var s = lexer.scanner(pgn);
+    var t: Token = undefined;
     std.debug.print("Tokens:\n", .{});
-    while (token != .@"error" and token != .eof) {
-        std.debug.print(" {f}\n", .{token});
-        token = try iter.next();
+    while (t != .@"error" and t != .eof) {
+        t = try s.next();
+        std.debug.print(" {f}\n", .{t});
     }
 }
