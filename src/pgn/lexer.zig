@@ -30,10 +30,10 @@ pub const Token = union(enum) {
     variationStart,                     // (
     variationEnd,                       // )
     variation: []const u8,              // e.g. (1. e4 e5 2. Nf3 Nc6)
-    commandStart,                       // [%
-    commandEnd,                         // ]
-    commandName: []const u8,            // e.g. clk, eval
-    commandParam: []const u8,           // Text
+    cmdStart,                           // [%
+    cmdEnd,                             // ]
+    cmdName: []const u8,                // e.g. clk, eval
+    cmdParam: []const u8,               // Text
     eof,
     @"error": LexerError,
 
@@ -65,10 +65,10 @@ pub const Token = union(enum) {
             .variationStart => try writer.print("VariationStart", .{}),
             .variationEnd => try writer.print("VariationEnd", .{}),
             .variation => |s| try writer.print("Variation({s})", .{s}),
-            .commandStart => try writer.print("CommandStart", .{}),
-            .commandEnd => try writer.print("CommandEnd", .{}),
-            .commandName => |s| try writer.print("CommandName({s})", .{s}),
-            .commandParam => |s| try writer.print("CommandParam({s})", .{s}),
+            .cmdStart => try writer.print("CmdStart", .{}),
+            .cmdEnd => try writer.print("CmdEnd", .{}),
+            .cmdName => |s| try writer.print("CmdName({s})", .{s}),
+            .cmdParam => |s| try writer.print("CmdParam({s})", .{s}),
             .eof => try writer.print("EOF", .{}),
             .@"error" => |err| try writer.print("Error({})", .{err}),
         }
@@ -102,10 +102,10 @@ pub const Scanner = struct {
         comment_start,
         comment_text,
         comment_end,
-        command_start,
-        command_name,
-        command_param,
-        command_end,
+        cmd_start,
+        cmd_name,
+        cmd_param,
+        cmd_end,
         variation_start,
         variation_end,
         result,
@@ -258,12 +258,13 @@ pub const Scanner = struct {
                             return .{ .capture = {} };
                         },
                         'O' => {
-                            const m = self.readUntilWhitespace();
-                            if (m.len == 3 and std.mem.eql(u8, m, "O-O")) {
-                                self.state = .move_end;
+                            if (self.pos + 5 < self.buf.len and std.mem.eql(u8, self.buf[self.pos..self.pos + 5], "O-O-O")) {
+                                self.pos += 5; // consume "O-O-O"
+                                self.state = .square_or_file;
                                 return .{ .queenSideCastle = {} };
-                            } else if (m.len == 5 and std.mem.eql(u8, m, "O-O-O")) {
-                                self.state = .move_end;
+                            } else if (self.pos + 3 < self.buf.len and std.mem.eql(u8, self.buf[self.pos..self.pos + 3], "O-O")) {
+                                self.pos += 3; // consume "O-O"
+                                self.state = .square_or_file;
                                 return .{ .kingSideCastle = {} };
                             }
                             self.setError(LexerError.UnexpectedCharacter);
@@ -315,6 +316,17 @@ pub const Scanner = struct {
                                 return .{ .checkmate = {} };
                             }
                         },
+                        '=' => {
+                            self.pos += 1; // consume '='
+                            if (self.peek(0)) |p| {
+                                if (p == 'Q' or p == 'R' or p == 'B' or p == 'N') {
+                                    self.pos += 1; // consume promotion piece
+                                    return .{ .promotion = p };
+                                }
+                            }
+                            self.setError(LexerError.UnexpectedCharacter);
+                            return self.next();
+                        },
                         '?', '!', '$' => {
                             const nag = self.readUntilWhitespace();
                             return .{ .nag = nag };
@@ -322,7 +334,7 @@ pub const Scanner = struct {
                         ')' => {
                             self.pos += 1; // consume ')'
                             self.state = .variation_end;
-                            return self.next();
+                            return .{ .moveEnd = {} };
                         },
                         else => {
                             self.setError(LexerError.UnexpectedCharacter);
@@ -373,12 +385,22 @@ pub const Scanner = struct {
                 return self.next();
             },
             .comment_start => {
-                self.skipWhitespace();
-                // TODO: Peek whether it is text or command
                 self.state = .comment_text;
                 return .{ .commentStart = {} };
             },
             .comment_text => {
+                self.skipWhitespace();
+                if (self.pos + 2 < self.buf.len and std.mem.eql(u8, self.buf[self.pos..self.pos + 2], "[%")) {
+                    self.pos += 2; // consume '[%'
+                    self.state = .cmd_start;
+                    return self.next();
+                }
+                if (self.peek(0)) |c| {
+                    if (c == '}') {
+                        self.state = .comment_end;
+                        return self.next();
+                    }
+                }
                 const comment = self.readUntilAny("}");
                 self.state = .comment_end;
                 return .{ .comment = std.mem.trimEnd(u8, comment, &std.ascii.whitespace) };
@@ -392,10 +414,35 @@ pub const Scanner = struct {
                 self.setError(LexerError.UnexpectedCharacter);
                 return self.next();
             },
-            .command_start => return error.NotImplemented,
-            .command_name => return error.NotImplemented,
-            .command_param => return error.NotImplemented,
-            .command_end => return error.NotImplemented,
+            .cmd_start => {
+                self.skipWhitespace();
+                self.state = .cmd_name;
+                return .{ .cmdStart = {} };
+            },
+            .cmd_name => {
+                const name = self.readUntilWhitespace();
+                if (name.len == 0) {
+                    self.setError(LexerError.UnexpectedEOF);
+                    return self.next();
+                }
+                self.state = .cmd_param;
+                return .{ .cmdName = name };
+            },
+            .cmd_param => {
+                self.skipWhitespace();
+                const param = self.readUntilAny("]");
+                self.state = .cmd_end;
+                return .{ .cmdParam = std.mem.trimEnd(u8, param, &std.ascii.whitespace) };
+            },
+            .cmd_end => {
+                if (self.peek(0) == ']') {
+                    self.pos += 1; // consume ']'
+                    self.state = .comment_text;
+                    return .{ .cmdEnd = {} };
+                }
+                self.setError(LexerError.UnexpectedCharacter);
+                return self.next();
+            },
             .variation_start => {
                 self.skipWhitespace();
                 if (self.peek(0)) |c| {
@@ -494,7 +541,7 @@ test scanner {
         // Set console output code page to UTF-8 on Windows to properly display Unicode characters
         _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
     }
-    const pgn = @embedFile("0001.pgn");
+    const pgn = @embedFile("0006.pgn");
     var s = Self.scanner(pgn);
     std.debug.print("Tokens:\n", .{});
     var t: Token = undefined;
