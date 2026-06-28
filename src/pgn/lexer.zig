@@ -37,7 +37,7 @@ pub const Token = union(enum) {
     eof,
     @"error": LexerError,
 
-    pub fn format(self: @This(), writer: *std.io.Writer) !void {
+    pub fn format(self: @This(), writer: *std.Io.Writer) !void {
         switch (self) {
             .tagStart => try writer.print("TagStart", .{}),
             .tagEnd => try writer.print("TagEnd", .{}),
@@ -537,10 +537,6 @@ pub fn scanner(pgn: []const u8) Scanner {
 }
 
 test scanner {
-    if (builtin.os.tag == .windows) {
-        // Set console output code page to UTF-8 on Windows to properly display Unicode characters
-        _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
-    }
     const pgn = @embedFile("0006.pgn");
     var s = Self.scanner(pgn);
     std.debug.print("Tokens:\n", .{});
