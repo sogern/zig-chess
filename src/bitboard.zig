@@ -6,7 +6,7 @@ const Square = @import("square.zig").Square;
 /// starting from the most significant bit (A1) to the least significant bit (H8):
 ///
 ///   a b c d e f g h
-/// 8 . . . . . . . . LSB (A8)
+/// 8 . . . . . . . . LSB (H8)
 /// 7 . . . . . . . .
 /// 6 . . . . . . . .
 /// 5 . . . . . . . .
