@@ -118,7 +118,7 @@ pub const F8 = 61;
 pub const G8 = 62;
 pub const H8 = 63;
 
-const squareBits = [_]u64{
+pub const squareBits = [_]u64{
     @as(u64, 1) << (63 - A1),
     @as(u64, 1) << (63 - B1),
     @as(u64, 1) << (63 - C1),
@@ -282,7 +282,7 @@ const squareStrings = [_]*const [2]u8{
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
 
-test "Square fromString and toString" {
+test "fromString and toString" {
     const testCase = struct {
         s: i8,
         str: []const u8,
@@ -368,7 +368,7 @@ test "Square fromString and toString" {
     }
 }
 
-test "Square fromFileAndRank" {
+test fromFileAndRank {
     const testCase = struct {
         f: i8,
         r: i8,
@@ -451,7 +451,7 @@ test "Square fromFileAndRank" {
     }
 }
 
-test "Square fromIndex" {
+test fromIndex {
     const testCase = struct {
         index: i8,
         file: i8,
