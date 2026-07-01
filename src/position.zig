@@ -28,7 +28,7 @@ pub const Position = struct {
             moveCount += 1;
         }
 
-        if (move.s1 == Square.None or move.s2 == Square.None) {
+        if (move.s1 == .None or move.s2 == .None) {
             return self;
         }
 
@@ -61,7 +61,7 @@ pub const Position = struct {
         const pieceType = piece.@"type"();
         if (pieceType == .None
             or (pieceType != .King and pieceType != .Rook)
-            or (move.s1.r != Square.Rank1 and move.s1.r != Square.Rank8)) {
+            or (move.s1.rank() != .@"1" and move.s1.rank() != .@"8")) {
             return self.castling;
         }
         return switch (piece) {
@@ -70,16 +70,16 @@ pub const Position = struct {
             .WhiteRook => {
                 const whiteKingSquare = self.board.getKingSquare(.White);
                 if (whiteKingSquare.f < move.s1.f) {
-                    return self.castling.removeCastlingRights(Colour, .Kingside);
+                    return self.castling.removeCastlingRight(.White, .Kingside);
                 }
-                return self.castling.removeCastlingRights(Colour, .Queenside);
+                return self.castling.removeCastlingRight(.White, .Queenside);
             },
             .BlackRook => {
                 const blackKingSquare = self.board.getKingSquare(.Black);
                 if (blackKingSquare.f < move.s1.f) {
-                    return self.castling.removeCastlingRights(Colour, .Kingside);
+                    return self.castling.removeCastlingRight(.Black, .Kingside);
                 }
-                return self.castling.removeCastlingRights(Colour, .Queenside);
+                return self.castling.removeCastlingRight(.Black, .Queenside);
             },
             else => self.castling,
         };

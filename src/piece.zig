@@ -23,7 +23,7 @@ pub const Piece = enum(u8) {
     BlackPawn,
     None,
 
-    pub fn fromChar(c: u8) Piece {
+    pub fn fromChar(c: u8) @This() {
         switch (c) {
             'K' => return .WhiteKing,
             'Q' => return .WhiteQueen,
@@ -41,31 +41,25 @@ pub const Piece = enum(u8) {
         }
     }
 
+    pub fn fromTypeAndColour(pt: PieceType, c: Colour) Piece {
+        if (c == .None or pt == .None) return .None;
+        return @enumFromInt(@intFromEnum(pt) + (@intFromEnum(c) * 6));
+    }
+
     pub fn @"type"(self: @This()) PieceType {
-        if (self == .None) {
-            return .None;
-        }
+        if (self == .None) return .None;
         return @enumFromInt(@intFromEnum(self) % 6);
     }
 
     pub fn colour(self: @This()) Colour {
-        if (self == .None) {
-            return .None;
-        }
+        if (self == .None) return .None;
         return @enumFromInt(@intFromEnum(self) / 6);
     }
 
-    pub fn toChar(self: @This()) u8 {
+    pub fn char(self: @This()) u8 {
         return pieces[@intFromEnum(self)];
     }
 };
-
-pub fn newPiece(pieceType: PieceType, colour: Colour) Piece {
-    if (colour == .None or pieceType == .None) {
-        return .None;
-    }
-    return @enumFromInt(@intFromEnum(pieceType) + (@intFromEnum(colour) * 6));
-}
 
 pub const PieceType = enum(u8) {
     King,
@@ -76,7 +70,7 @@ pub const PieceType = enum(u8) {
     Pawn,
     None,
 
-    pub fn toString(self: @This()) u8 {
+    pub inline fn string(self: @This()) u8 {
         return pieceTypes[@intFromEnum(self)];
     }
 };
@@ -98,7 +92,7 @@ pub const Colour = enum(u8) {
     Black,
     None,
 
-    pub fn fromChar(c: u8) Colour {
+    pub fn fromChar(c: u8) @This() {
         switch (c) {
             'w' => return .White,
             'b' => return .Black,
@@ -106,11 +100,11 @@ pub const Colour = enum(u8) {
         }
     }
 
-    pub fn toChar(self: @This()) u8 {
+    pub fn char(self: @This()) u8 {
         return colours[@intFromEnum(self)];
     }
 
-    pub fn opposite(self: @This()) Colour {
+    pub fn opposite(self: @This()) @This() {
         return switch (self) {
             .White => .Black,
             .Black => .White,
@@ -119,7 +113,7 @@ pub const Colour = enum(u8) {
     }
 };
 
-test "create new pieces" {
+test "pieces" {
     const TestCase = struct {
         c: Colour,
         pt: PieceType,
@@ -142,11 +136,11 @@ test "create new pieces" {
     };
 
     for (testCases) |tc| {
-        try std.testing.expectEqual(tc.e, newPiece(tc.pt, tc.c));
+        try std.testing.expectEqual(tc.e, Piece.fromTypeAndColour(tc.pt, tc.c));
     }
 }
 
-test "piece type from pieces" {
+test "type from pieces" {
     const TestCase = struct {
         p: Piece,
         e: PieceType,
@@ -172,7 +166,7 @@ test "piece type from pieces" {
     }
 }
 
-test "string representation of piece types" {
+test "types" {
     const testCases: [7]struct {
         pt: PieceType,
         e: u8,
@@ -187,11 +181,11 @@ test "string representation of piece types" {
     };
 
     for (testCases) |tc| {
-        try std.testing.expectEqual(tc.e, tc.pt.toString());
+        try std.testing.expectEqual(tc.e, tc.pt.string());
     }
 }
 
-test "string representation of colours" {
+test "colours" {
     const testCases: [3]struct {
         c: Colour,
         e: u8,
@@ -202,6 +196,6 @@ test "string representation of colours" {
     };
 
     for (testCases) |tc| {
-        try std.testing.expectEqual(tc.e, tc.c.toChar());
+        try std.testing.expectEqual(tc.e, tc.c.char());
     }
 }

@@ -42,7 +42,7 @@ pub const Move = struct {
         return std.fmt.allocPrint(
             std.heap.page_allocator,
             "{s}->{s}, p:{c}",
-            .{ self.s1.toString(), self.s2.toString(), self.promotion.toString() },
+            .{ self.s1.string(), self.s2.string(), self.promotion.string() },
         ) catch unreachable;
     }
 
@@ -65,8 +65,8 @@ pub const Move = struct {
 
 test "Move toString" {
     const move = Move{
-        .s1 = Square.fromIndex(Square.E2),
-        .s2 = Square.fromIndex(Square.E4),
+        .s1 = Square.E2,
+        .s2 = Square.E4,
     };
     try std.testing.expectEqualStrings("e2->e4, p: ", move.toString());
 }

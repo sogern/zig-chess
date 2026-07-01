@@ -1,5 +1,5 @@
 const std = @import("std");
-const Square = @import("square.zig");
+const Square = @import("square.zig").Square;
 
 /// A bitboard is a 64-bit unsigned integer representing a chessboard.
 /// Each bit corresponds to a square on the board indexed from 0 to 63,
@@ -16,54 +16,7 @@ const Square = @import("square.zig");
 /// 1 . . . . . . . . MSB (A1)
 pub const bitboard = u64;
 
-/// Predefined bitboard masks for files and ranks
-pub const bbFileA: bitboard = 0x8080808080808080;
-pub const bbFileB: bitboard = 0x4040404040404040;
-pub const bbFileC: bitboard = 0x2020202020202020;
-pub const bbFileD: bitboard = 0x1010101010101010;
-pub const bbFileE: bitboard = 0x0808080808080808;
-pub const bbFileF: bitboard = 0x0404040404040404;
-pub const bbFileG: bitboard = 0x0202020202020202;
-pub const bbFileH: bitboard = 0x0101010101010101;
-pub const bbRank1: bitboard = 0xFF00000000000000;
-pub const bbRank2: bitboard = 0x00FF000000000000;
-pub const bbRank3: bitboard = 0x0000FF0000000000;
-pub const bbRank4: bitboard = 0x000000FF00000000;
-pub const bbRank5: bitboard = 0x00000000FF000000;
-pub const bbRank6: bitboard = 0x0000000000FF0000;
-pub const bbRank7: bitboard = 0x000000000000FF00;
-pub const bbRank8: bitboard = 0x00000000000000FF;
-
-pub const bbFiles = [_]bitboard{
-    bbFileA,
-    bbFileB,
-    bbFileC,
-    bbFileD,
-    bbFileE,
-    bbFileF,
-    bbFileG,
-    bbFileH,
-};
-
-pub const bbRanks = [_]bitboard{
-    bbRank1,
-    bbRank2,
-    bbRank3,
-    bbRank4,
-    bbRank5,
-    bbRank6,
-    bbRank7,
-    bbRank8,
-};
-
-pub const bbDiagonals: [64]bitboard = @import("bitboard/diagonals.zon");
-pub const bbAntiDiagonals: [64]bitboard = @import("bitboard/antiDiagonals.zon");
-pub const bbKnightMoves: [64]bitboard = @import("bitboard/knightMoves.zon");
-pub const bbBishopMoves: [64]bitboard = @import("bitboard/bishopMoves.zon");
-pub const bbRookMoves: [64]bitboard = @import("bitboard/rookMoves.zon");
-pub const bbQueenMoves: [64]bitboard = @import("bitboard/queenMoves.zon");
-pub const bbKingMoves: [64]bitboard = @import("bitboard/kingMoves.zon");
-
+// TODO: Move bitboard generating code to a separate generator.zig file
 // const pieceMove = struct {
 //     from_square: [2]u8,
 //     to_squares: [][2]u8,
@@ -283,7 +236,7 @@ pub const bbKingMoves: [64]bitboard = @import("bitboard/kingMoves.zon");
 /// Caller owns the returned string.
 pub fn drawBitboard(alloc: std.mem.Allocator, bb: bitboard) []const u8 {
     const lines = [_][]const u8{
-        "  A B C D E F G H\n",
+        "  a b c d e f g h\n",
         "8                \n",
         "7                \n",
         "6                \n",
@@ -300,18 +253,18 @@ pub fn drawBitboard(alloc: std.mem.Allocator, bb: bitboard) []const u8 {
         const r = 7 - rank;
         const l = rank + 1;
         @memcpy(buf[0..lines[l].len], lines[l]);
-        for (0..8) |file| {
-            const sq = (file + 1) + (r * 8) - 1;
-            const bbForSquare = Square.squareBits[sq];
+        for (0..8) |f| {
+            const sq = (f + 1) + (r * 8) - 1;
+            const bbForSquare = Square.fromIndex(sq).bitmask();
             if (bb & bbForSquare != 0) {
-                buf[file * 2 + 2] = 'X';
+                buf[f * 2 + 2] = 'X';
             } else {
-                buf[file * 2 + 2] = ' ';
+                buf[f * 2 + 2] = ' ';
             }
         }
         out.appendSlice(alloc, buf[0..lines[l].len]) catch @panic("OOM");
     }
-    return out.items;
+    return out.toOwnedSlice(alloc) catch @panic("OOM");
 }
 
 /// Prints a bitboard in a human-readable format.
@@ -322,23 +275,19 @@ fn debugBitboard(alloc: std.mem.Allocator, bb: bitboard, name: []const u8) void 
 }
 
 test "Debug bitboard" {
+    const bbAntiDiagonals: [64]bitboard = @import("bitboard/antiDiagonals.zon");
+
     const alloc = std.testing.allocator;
-    const sqBB: bitboard = Square.SqB4.getBitboard();
+    const sqBB: bitboard = Square.B4.bitmask();
     debugBitboard(alloc, sqBB, "sqBB");
-    // const occupied: bitboard = 0x0000004800000008;
     const occupied: bitboard = 0x10004800000800;
     debugBitboard(alloc, occupied, "occupied");
-    // const mask = bbRank4;
-    // const mask = bbFileB;
-    // const mask = bbDiagonals[Square.SqB4.s];
-    const mask = bbAntiDiagonals[Square.SqB4.s];
+    const mask = bbAntiDiagonals[Square.B4.index()];
     debugBitboard(alloc, mask, "mask");
     const oInMask = occupied & mask;
     debugBitboard(alloc, oInMask, "oInMask");
-    // const twoXsqBB = 2 * sqBB;
     const twoXsqBB = sqBB << 1; // Multiply by 2
     debugBitboard(alloc, twoXsqBB, "twoXsqBB");
-    // const oInMaskMinusTwoXsqBB = oInMask & ~twoXsqBB;
     const oInMaskMinusTwoXsqBB = oInMask -% twoXsqBB;
     debugBitboard(alloc, oInMaskMinusTwoXsqBB, "oInMaskMinusTwoXsqBB");
     const oInMaskReversed = @bitReverse(oInMask);
@@ -346,7 +295,6 @@ test "Debug bitboard" {
     const sqBBReversed = @bitReverse(sqBB);
     debugBitboard(alloc, sqBBReversed, "sqBBReversed");
     const twoXsqBBReversed = sqBBReversed << 1; // Multiply by 2
-    // const twoXsqBBReversed = @bitReverse(twoXsqBB);
     debugBitboard(alloc, twoXsqBBReversed, "twoXsqBBReversed");
     const oInMaskReversedMinusTwoXsqBBReversed = oInMaskReversed -% twoXsqBBReversed;
     debugBitboard(alloc, oInMaskReversedMinusTwoXsqBBReversed, "oInMaskReversedMinusTwoXsqBBReversed");

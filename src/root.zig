@@ -4,5 +4,5 @@ pub const bb = @import("bitboard.zig");
 pub const bitboard = bb.bitboard;
 
 test {
-    @import("std").testing.refAllDeclsRecursive(@This());
+    @import("std").testing.refAllDecls(@This());
 }

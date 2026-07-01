@@ -8,6 +8,8 @@ const CastlingRights = @import("castling.zig").CastlingRights;
 const CastlingSide = @import("castling.zig").CastlingSide;
 const PieceError = @import("piece.zig").PieceError;
 const Square = @import("square.zig").Square;
+const File = @import("file.zig").File;
+const Rank = @import("rank.zig").Rank;
 
 pub const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
@@ -29,10 +31,10 @@ pub fn decodeFEN(fen: []const u8) !Position {
     var partsCount: usize = 0;
     while (it.next()) |p| {
         switch (partsCount) {
-            0 => |_| {
+            0 => {
                 try fenBoard(&position.board, p);
             },
-            1 => |_| {
+            1 => {
                 if (p.len != 1) {
                     return FENError.InvalidFEN;
                 }
@@ -41,16 +43,16 @@ pub fn decodeFEN(fen: []const u8) !Position {
                     return FENError.InvalidFEN;
                 }
             },
-            2 => |_| {
+            2 => {
                 try fenCastlingRights(position.board, &position.castling, p);
             },
-            3 => |_| {
+            3 => {
                 try fenEnPassantSquare(&position.enPassantSquare, p);
             },
-            4 => |_| {
+            4 => {
                 try fenInt32Field(&position.halfMoveClock, p, 0, FENError.InvalidHalfMoveClock);
             },
-            5 => |_| {
+            5 => {
                 try fenInt32Field(&position.moveCount, p, 1, FENError.InvalidMoveCount);
             },
             else => return FENError.InvalidFEN,
@@ -100,7 +102,7 @@ fn fenBoard(board: *Board, boardStr: []const u8) !void {
                 if (piece == Piece.None) {
                     return PieceError.InvalidPiece;
                 }
-                try board.placePiece(piece, Square.fromFileAndRank(@as(i8, @intCast(fileIndex)), @as(i8, @intCast(rank))));
+                try board.placePiece(piece, Square.fromIndex(rank * 8 + fileIndex));
                 // std.debug.print("Placed piece {c} at rank {d}, file {d}\n", .{piece.toChar(), rank, fileIndex});
                 fileIndex += 1;
             }
@@ -109,7 +111,7 @@ fn fenBoard(board: *Board, boardStr: []const u8) !void {
 }
 
 fn fenCastlingRights(_: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
-    castling.* = try CastlingRights.fromString(castlingStr, Square.FileE);
+    castling.* = try CastlingRights.fromString(castlingStr, File.E);
 }
 
 fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void {
@@ -119,10 +121,10 @@ fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void 
     }
 
     const s = Square.fromString(enPassantStr);
-    if (s.equals(Square.None)) {
+    if (s == .None) {
         return FENError.InvalidFEN;
     }
-    if (s.r != Square.Rank3 and s.r != Square.Rank6) {
+    if (s.rank() != .@"3" and s.rank() != .@"6") {
         return FENError.InvalidEnPassantSquare;
     }
 
@@ -140,11 +142,12 @@ fn fenInt32Field(field: *i32, fieldStr: []const u8, minVal: i32, fenError: FENEr
 }
 
 test "decodeFEN start position" {
+    const alloc = std.testing.allocator;
     std.debug.print("Decoding valid FEN...\n", .{});
     const position = try decodeFEN(startFEN);
 
     // std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.draw()});
-    const expected = "  A B C D E F G H\n"
+    const expected = "  a b c d e f g h\n"
         ++ "8 r n b q k b n r\n"
         ++ "7 p p p p p p p p\n"
         ++ "6                \n"
@@ -154,42 +157,44 @@ test "decodeFEN start position" {
         ++ "2 P P P P P P P P\n"
         ++ "1 R N B Q K B N R\n";
     // std.debug.print("Board:\n{s}", .{position.board.draw()});
-    try std.testing.expectEqualStrings(expected, position.board.draw());
+    const board_str = position.board.draw(alloc);
+    defer alloc.free(board_str);
+    try std.testing.expectEqualStrings(expected, board_str);
     // position.board.debugInternalBitboards();
-    try std.testing.expectEqual(Square.squareBit(Square.A1) + Square.squareBit(Square.H1), position.board.whiteRooks);
-    try std.testing.expectEqual(Square.squareBit(Square.B1) + Square.squareBit(Square.G1), position.board.whiteKnights);
-    try std.testing.expectEqual(Square.squareBit(Square.C1) + Square.squareBit(Square.F1), position.board.whiteBishops);
-    try std.testing.expectEqual(Square.squareBit(Square.D1), position.board.whiteQueen);
-    try std.testing.expectEqual(Square.squareBit(Square.E1), position.board.whiteKing);
-    try std.testing.expectEqual(Square.squareBit(Square.A2) + Square.squareBit(Square.B2) +
-        Square.squareBit(Square.C2) + Square.squareBit(Square.D2) +
-        Square.squareBit(Square.E2) + Square.squareBit(Square.F2) +
-        Square.squareBit(Square.G2) + Square.squareBit(Square.H2), position.board.whitePawns);
-    try std.testing.expectEqual(Square.squareBit(Square.A8) + Square.squareBit(Square.H8), position.board.blackRooks);
-    try std.testing.expectEqual(Square.squareBit(Square.B8) + Square.squareBit(Square.G8), position.board.blackKnights);
-    try std.testing.expectEqual(Square.squareBit(Square.C8) + Square.squareBit(Square.F8), position.board.blackBishops);
-    try std.testing.expectEqual(Square.squareBit(Square.D8), position.board.blackQueen);
-    try std.testing.expectEqual(Square.squareBit(Square.E8), position.board.blackKing);
-    try std.testing.expectEqual(Square.squareBit(Square.A7) + Square.squareBit(Square.B7) +
-        Square.squareBit(Square.C7) + Square.squareBit(Square.D7) +
-        Square.squareBit(Square.E7) + Square.squareBit(Square.F7) +
-        Square.squareBit(Square.G7) + Square.squareBit(Square.H7), position.board.blackPawns);
-    try std.testing.expectEqual(Square.squareBit(Square.A3) + Square.squareBit(Square.A4) +
-        Square.squareBit(Square.A5) + Square.squareBit(Square.A6) +
-        Square.squareBit(Square.B3) + Square.squareBit(Square.B4) +
-        Square.squareBit(Square.B5) + Square.squareBit(Square.B6) +
-        Square.squareBit(Square.C3) + Square.squareBit(Square.C4) +
-        Square.squareBit(Square.C5) + Square.squareBit(Square.C6) +
-        Square.squareBit(Square.D3) + Square.squareBit(Square.D4) +
-        Square.squareBit(Square.D5) + Square.squareBit(Square.D6) +
-        Square.squareBit(Square.E3) + Square.squareBit(Square.E4) +
-        Square.squareBit(Square.E5) + Square.squareBit(Square.E6) +
-        Square.squareBit(Square.F3) + Square.squareBit(Square.F4) +
-        Square.squareBit(Square.F5) + Square.squareBit(Square.F6) +
-        Square.squareBit(Square.G3) + Square.squareBit(Square.G4) +
-        Square.squareBit(Square.G5) + Square.squareBit(Square.G6) +
-        Square.squareBit(Square.H3) + Square.squareBit(Square.H4) +
-        Square.squareBit(Square.H5) + Square.squareBit(Square.H6), position.board.emptySquares);
+    try std.testing.expectEqual(Square.A1.bitmask() + Square.H1.bitmask(), position.board.whiteRooks);
+    try std.testing.expectEqual(Square.B1.bitmask() + Square.G1.bitmask(), position.board.whiteKnights);
+    try std.testing.expectEqual(Square.C1.bitmask() + Square.F1.bitmask(), position.board.whiteBishops);
+    try std.testing.expectEqual(Square.D1.bitmask(), position.board.whiteQueen);
+    try std.testing.expectEqual(Square.E1.bitmask(), position.board.whiteKing);
+    try std.testing.expectEqual(Square.A2.bitmask() + Square.B2.bitmask() +
+        Square.C2.bitmask() + Square.D2.bitmask() +
+        Square.E2.bitmask() + Square.F2.bitmask() +
+        Square.G2.bitmask() + Square.H2.bitmask(), position.board.whitePawns);
+    try std.testing.expectEqual(Square.A8.bitmask() + Square.H8.bitmask(), position.board.blackRooks);
+    try std.testing.expectEqual(Square.B8.bitmask() + Square.G8.bitmask(), position.board.blackKnights);
+    try std.testing.expectEqual(Square.C8.bitmask() + Square.F8.bitmask(), position.board.blackBishops);
+    try std.testing.expectEqual(Square.D8.bitmask(), position.board.blackQueen);
+    try std.testing.expectEqual(Square.E8.bitmask(), position.board.blackKing);
+    try std.testing.expectEqual(Square.A7.bitmask() + Square.B7.bitmask() +
+        Square.C7.bitmask() + Square.D7.bitmask() +
+        Square.E7.bitmask() + Square.F7.bitmask() +
+        Square.G7.bitmask() + Square.H7.bitmask(), position.board.blackPawns);
+    try std.testing.expectEqual(Square.A3.bitmask() + Square.A4.bitmask() +
+        Square.A5.bitmask() + Square.A6.bitmask() +
+        Square.B3.bitmask() + Square.B4.bitmask() +
+        Square.B5.bitmask() + Square.B6.bitmask() +
+        Square.C3.bitmask() + Square.C4.bitmask() +
+        Square.C5.bitmask() + Square.C6.bitmask() +
+        Square.D3.bitmask() + Square.D4.bitmask() +
+        Square.D5.bitmask() + Square.D6.bitmask() +
+        Square.E3.bitmask() + Square.E4.bitmask() +
+        Square.E5.bitmask() + Square.E6.bitmask() +
+        Square.F3.bitmask() + Square.F4.bitmask() +
+        Square.F5.bitmask() + Square.F6.bitmask() +
+        Square.G3.bitmask() + Square.G4.bitmask() +
+        Square.G5.bitmask() + Square.G6.bitmask() +
+        Square.H3.bitmask() + Square.H4.bitmask() +
+        Square.H5.bitmask() + Square.H6.bitmask(), position.board.emptySquares);
 
     try std.testing.expectEqual(Colour.White, position.turn);
     try std.testing.expectEqual(Square.None, position.enPassantSquare);
