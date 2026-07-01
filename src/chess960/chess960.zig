@@ -74,12 +74,12 @@ pub fn positionFromId(_id: usize) [8]u8 {
 
 test "unique positions" {
     // Check that all positions are unique
-    var seen = std.AutoHashMap([8]u8, bool).init(std.testing.allocator);
+    var seen = std.AutoHashMap([8]u8, void).init(std.testing.allocator);
     defer seen.deinit();
 
     for (0..960) |i| {
         const position = positionFromId(i);
-        try seen.put(position, true);
+        try seen.put(position, {});
     }
     try std.testing.expectEqual(960, seen.count());
 }
