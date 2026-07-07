@@ -70,7 +70,7 @@ pub const PieceType = enum(u8) {
     Pawn,
     None,
 
-    pub inline fn string(self: @This()) u8 {
+    pub inline fn char(self: @This()) u8 {
         return pieceTypes[@intFromEnum(self)];
     }
 };
@@ -181,7 +181,7 @@ test "types" {
     };
 
     for (testCases) |tc| {
-        try std.testing.expectEqual(tc.e, tc.pt.string());
+        try std.testing.expectEqual(tc.e, tc.pt.char());
     }
 }
 

@@ -74,15 +74,38 @@ pub const Square = enum(u64) {
         return @enumFromInt(@as(u64, 1) << @intCast(63 - i));
     }
 
+    test fromIndex {
+        try std.testing.expectEqual(Square.A1, Square.fromIndex(0));
+        try std.testing.expectEqual(Square.E4, Square.fromIndex(28));
+        try std.testing.expectEqual(Square.H8, Square.fromIndex(63));
+        try std.testing.expectEqual(Square.None, Square.fromIndex(64));
+    }
+
     pub fn fromFileAndRank(f: File, r: Rank) @This() {
         if (f == .None or r == .None) return .None;
         const i = ((r.int() - 1) * 8) + f.int() - 1;
         return fromIndex(i);
     }
 
+    test fromFileAndRank {
+        try std.testing.expectEqual(Square.A1, Square.fromFileAndRank(File.A, Rank.@"1"));
+        try std.testing.expectEqual(Square.E4, Square.fromFileAndRank(File.E, Rank.@"4"));
+        try std.testing.expectEqual(Square.H8, Square.fromFileAndRank(File.H, Rank.@"8"));
+        try std.testing.expectEqual(Square.None, Square.fromFileAndRank(File.None, Rank.@"8"));
+    }
+
     pub fn fromString(s: []const u8) @This() {
         if (s.len != 2) return .None;
         return fromIndex((@as(usize, s[0] - 'a') + (@as(usize, s[1] - '1') * 8)));
+    }
+
+    test fromString {
+        try std.testing.expectEqual(Square.A1, Square.fromString("a1"));
+        try std.testing.expectEqual(Square.E4, Square.fromString("e4"));
+        try std.testing.expectEqual(Square.H8, Square.fromString("h8"));
+        try std.testing.expectEqual(Square.None, Square.fromString("i9"));
+        try std.testing.expectEqual(Square.None, Square.fromString("a"));
+        try std.testing.expectEqual(Square.None, Square.fromString(""));
     }
 
     pub inline fn string(self: @This()) []const u8 {
@@ -99,14 +122,63 @@ pub const Square = enum(u64) {
         return Rank.fromIndex(@clz(@intFromEnum(self)) / 8);
     }
 
+    test rank {
+        try std.testing.expectEqual(Rank.@"1", Square.A1.rank());
+        try std.testing.expectEqual(Rank.@"4", Square.E4.rank());
+        try std.testing.expectEqual(Rank.@"8", Square.H8.rank());
+        try std.testing.expectEqual(Rank.None, Square.None.rank());
+    }
+
     pub inline fn file(self: @This()) File {
         if (self == .None) return .None;
         return File.fromIndex(@clz(@intFromEnum(self)) % 8);
     }
 
-    pub fn index(self: @This()) usize {
-        if (self == .None) return 64;
+    test file {
+        try std.testing.expectEqual(File.A, Square.A1.file());
+        try std.testing.expectEqual(File.E, Square.E4.file());
+        try std.testing.expectEqual(File.H, Square.H8.file());
+        try std.testing.expectEqual(File.None, Square.None.file());
+    }
+
+    pub inline fn index(self: @This()) usize {
         return @clz(@intFromEnum(self));
+    }
+
+    pub fn order(self: @This(), other: @This()) std.math.Order {
+        const selfIndex = self.index();
+        const otherIndex = other.index();
+        if (selfIndex < otherIndex) return .lt;
+        if (selfIndex > otherIndex) return .gt;
+        return .eq;
+    }
+
+    /// Less than
+    pub fn lt(self: @This(), other: @This()) bool {
+        return self.order(other) == .lt;
+    }
+
+    /// Greater than
+    pub fn gt(self: @This(), other: @This()) bool {
+        return self.order(other) == .gt;
+    }
+
+    /// Less than or equal to
+    pub fn lte(self: @This(), other: @This()) bool {
+        return self.order(other) != .gt;
+    }
+
+    /// Greater than or equal to
+    pub fn gte(self: @This(), other: @This()) bool {
+        return self.order(other) != .lt;
+    }
+
+    test "comparison" {
+        try std.testing.expect(Square.A1.lt(Square.B1));
+        try std.testing.expect(Square.A1.lt(Square.A2));
+        try std.testing.expect(Square.H8.gt(Square.G8));
+        try std.testing.expect(Square.H8.gt(Square.H7));
+        try std.testing.expect(Square.None.gt(Square.H8));
     }
 };
 
@@ -121,39 +193,6 @@ const squareStrings = [_]*const [2]u8{
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
 
-test "fromIndex" {
-    try std.testing.expectEqual(Square.A1, Square.fromIndex(0));
-    try std.testing.expectEqual(Square.E4, Square.fromIndex(28));
-    try std.testing.expectEqual(Square.H8, Square.fromIndex(63));
-    try std.testing.expectEqual(Square.None, Square.fromIndex(64));
-}
-
-test "fromFileAndRank" {
-    try std.testing.expectEqual(Square.A1, Square.fromFileAndRank(File.A, Rank.@"1"));
-    try std.testing.expectEqual(Square.E4, Square.fromFileAndRank(File.E, Rank.@"4"));
-    try std.testing.expectEqual(Square.H8, Square.fromFileAndRank(File.H, Rank.@"8"));
-    try std.testing.expectEqual(Square.None, Square.fromFileAndRank(File.None, Rank.@"8"));
-}
-
-test "fromString" {
-    try std.testing.expectEqual(Square.A1, Square.fromString("a1"));
-    try std.testing.expectEqual(Square.E4, Square.fromString("e4"));
-    try std.testing.expectEqual(Square.H8, Square.fromString("h8"));
-    try std.testing.expectEqual(Square.None, Square.fromString("i9"));
-    try std.testing.expectEqual(Square.None, Square.fromString("a"));
-    try std.testing.expectEqual(Square.None, Square.fromString(""));
-}
-
-test "rank" {
-    try std.testing.expectEqual(Rank.@"1", Square.A1.rank());
-    try std.testing.expectEqual(Rank.@"4", Square.E4.rank());
-    try std.testing.expectEqual(Rank.@"8", Square.H8.rank());
-    try std.testing.expectEqual(Rank.None, Square.None.rank());
-}
-
-test "file" {
-    try std.testing.expectEqual(File.A, Square.A1.file());
-    try std.testing.expectEqual(File.E, Square.E4.file());
-    try std.testing.expectEqual(File.H, Square.H8.file());
-    try std.testing.expectEqual(File.None, Square.None.file());
+test {
+    @import("std").testing.refAllDecls(@This());
 }

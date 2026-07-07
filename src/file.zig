@@ -23,7 +23,7 @@ pub const File = enum(u64) {
 
     pub inline fn char(self: @This()) u8 {
         if (self == .None) return 0;
-        return 'a' + (7 - @ctz(@intFromEnum(self)));
+        return 'a' + @clz(@intFromEnum(self));
     }
 
     pub inline fn int(self: @This()) u8 {

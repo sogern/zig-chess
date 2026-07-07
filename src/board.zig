@@ -1,7 +1,7 @@
 const std = @import("std");
 const bitboard = @import("bitboard.zig").bitboard;
 const Piece = @import("piece.zig").Piece;
-const CastlingRights = @import("castling.zig").CastlingRights;
+const CastlingRights = @import("castling.zig");
 const Colour = @import("piece.zig").Colour;
 const PieceError = @import("piece.zig").PieceError;
 const PieceType = @import("piece.zig").PieceType;
@@ -33,9 +33,9 @@ pub const Board = packed struct {
     blackPawns: bitboard = 0,
     whiteSquares: bitboard = 0, // all white pieces
     blackSquares: bitboard = 0, // all black pieces
-    emptySquares: bitboard = 0xFFFFFFFFFFFFFFFF,
+    emptySquares: bitboard = 0xFFFF_FFFF_FFFF_FFFF,
 
-    pub fn getBBForPiece(self: *const Board, piece: Piece) !bitboard {
+    pub fn getBBForPiece(self: @This(), piece: Piece) !bitboard {
         return switch (piece) {
             .WhiteKing => self.whiteKing,
             .WhiteQueen => self.whiteQueen,
@@ -53,7 +53,7 @@ pub const Board = packed struct {
         };
     }
 
-    pub fn setBBForPiece(self: *Board, piece: Piece, bb: bitboard) !void {
+    pub fn setBBForPiece(self: *@This(), piece: Piece, bb: bitboard) !void {
         switch (piece) {
             .WhiteKing => self.whiteKing = bb,
             .WhiteQueen => self.whiteQueen = bb,
@@ -71,7 +71,7 @@ pub const Board = packed struct {
         }
     }
 
-    pub fn getBBForColour(self: *const Board, colour: Colour) bitboard {
+    pub fn getBBForColour(self: @This(), colour: Colour) bitboard {
         return switch (colour) {
             .White => self.whiteSquares,
             .Black => self.blackSquares,
@@ -79,7 +79,7 @@ pub const Board = packed struct {
         };
     }
 
-    fn calcConvenienceBBs(self: *Board) void {
+    fn calcConvenienceBBs(self: *@This()) void {
         self.whiteSquares = self.whiteKing
             | self.whiteQueen
             | self.whiteRooks
@@ -99,21 +99,32 @@ pub const Board = packed struct {
         return bb | s.bitmask();
     }
 
+    test setBitboardBit {
+        var bb: bitboard = 0;
+        bb = Board.setBitboardBit(bb, Square.E4);
+        try std.testing.expectEqual(Square.E4.bitmask(), bb);
+    }
+
     inline fn clearBitboardBit(bb: bitboard, s: Square) bitboard {
         return bb & ~s.bitmask();
     }
 
-    pub inline fn isSquareOccupied(self: Board, square: Square) bool {
+    test clearBitboardBit {
+        const bb = Board.clearBitboardBit(0xFFFF_FFFF_FFFF_FFFF, .E4);
+        try std.testing.expectEqual(~Square.E4.bitmask(), bb);
+    }
+
+    pub inline fn isSquareOccupied(self: @This(), square: Square) bool {
         const bb: bitboard = square.bitmask();
         return (self.whiteSquares & bb) != 0 or (self.blackSquares & bb) != 0;
     }
 
-    pub inline fn isSquareEmpty(self: Board, square: Square) bool {
+    pub inline fn isSquareEmpty(self: @This(), square: Square) bool {
         const bb: bitboard = square.bitmask();
         return (self.emptySquares & bb) != 0;
     }
 
-    pub fn getPieceOnSquare(self: Board, square: Square) Piece {
+    pub fn getPieceOnSquare(self: @This(), square: Square) Piece {
         const bb: bitboard = square.bitmask();
         if ((self.whiteSquares & bb) != 0) {
             if ((self.whiteKing & bb) != 0) return Piece.WhiteKing;
@@ -133,14 +144,11 @@ pub const Board = packed struct {
         return Piece.None;
     }
 
-    pub fn placePiece(self: *Board, p: Piece, square: Square) !void {
+    pub fn placePiece(self: *@This(), p: Piece, square: Square) !void {
         if (self.isSquareOccupied(square)) {
             return BoardError.SquareOccupied;
         }
-
         const bit: bitboard = setBitboardBit(0, square);
-        // std.debug.print("piece: {c}, square: {s}, bit: {b}\n", .{p.toChar(), square.toString(), bit});
-
         switch (p) {
             .WhiteKing => {
                 self.whiteKing |= bit;
@@ -192,26 +200,42 @@ pub const Board = packed struct {
             },
             .None => return PieceError.InvalidPiece,
         }
-
         self.emptySquares = clearBitboardBit(self.emptySquares, square);
     }
 
-    pub fn getKingSquare(self: Board, colour: Colour) Square {
+    pub fn getKingSquare(self: @This(), colour: Colour) Square {
         return switch (colour) {
-            .None => .None,
             .White => {
                 if (self.whiteKing == 0) return .None;
-                return Square.fromIndex(@as(usize, @clz(self.whiteKing)));
+                return Square.fromIndex(@clz(self.whiteKing));
             },
             .Black => {
                 if (self.blackKing == 0) return .None;
-                return Square.fromIndex(@as(usize, @clz(self.blackKing)));
+                return Square.fromIndex(@clz(self.blackKing));
             },
+            .None => .None,
         };
     }
 
-    /// draw returns a string representation of the board.
-    pub fn draw(self: Board, alloc: std.mem.Allocator) []const u8 {
+    test getKingSquare {
+        var board: Board = .{};
+
+        // Place a white king on e1
+        const e1 = Square.fromFileAndRank(.E, .@"1");
+        try board.placePiece(.WhiteKing, e1);
+        const whiteKingSquare = board.getKingSquare(.White);
+        try std.testing.expectEqual(e1, whiteKingSquare);
+
+        // Place a black king on e8
+        const e8 = Square.fromFileAndRank(.E, .@"8");
+        try board.placePiece(.BlackKing, e8);
+        const blackKingSquare = board.getKingSquare(.Black);
+        try std.testing.expectEqual(e8, blackKingSquare);
+    }
+
+    /// Returns a human-readable representation of the board.
+    /// Caller owns the returned string.
+    pub fn draw(self: @This(), alloc: std.mem.Allocator) []const u8 {
         const lines = [_][]const u8{
             "  a b c d e f g h\n",
             "8                \n",
@@ -239,7 +263,30 @@ pub const Board = packed struct {
         return out.toOwnedSlice(alloc) catch @panic("OOM");
     }
 
-    pub fn internalBitboards(self: Board, alloc: std.mem.Allocator) []const u8 {
+    test draw {
+        const alloc = std.testing.allocator;
+        var board: @This() = .{};
+
+        // Place some pieces
+        try board.placePiece(.WhiteKing, .E4);
+        try board.placePiece(.BlackQueen, .D6);
+        try board.placePiece(.WhiteRook, .A1);
+
+        const expected = "  a b c d e f g h\n"
+            ++ "8                \n"
+            ++ "7                \n"
+            ++ "6       q        \n"
+            ++ "5                \n"
+            ++ "4         K      \n"
+            ++ "3                \n"
+            ++ "2                \n"
+            ++ "1 R              \n";
+        const board_str = board.draw(alloc);
+        defer alloc.free(board_str);
+        try std.testing.expectEqualStrings(expected, board_str);
+    }
+
+    pub fn internalBitboards(self: @This(), alloc: std.mem.Allocator) []const u8 {
         var out = std.ArrayList(u8).initCapacity(alloc, (15 + 64) * 15) catch @panic("OOM");
         var buffer: [100]u8 = undefined;
         out.appendSlice(alloc, std.fmt.bufPrint(&buffer, "White King:   {b:0>64}\n", .{self.whiteKing}) catch unreachable) catch @panic("OOM");
@@ -261,7 +308,7 @@ pub const Board = packed struct {
     }
 
     /// toFEN returns the board in Forsyth-Edwards Notation.
-    pub fn toFEN(self: Board, alloc: std.mem.Allocator) []const u8 {
+    pub fn toFEN(self: @This(), alloc: std.mem.Allocator) []const u8 {
         // 71 is the theoretical maximum length of the piece placement part of a FEN string
         var out = std.ArrayList(u8).initCapacity(alloc, 8 * 8 + 7) catch @panic("OOM");
         var emptyCount: u8 = 0;
@@ -298,11 +345,45 @@ pub const Board = packed struct {
                 emptyCount = 0;
             }
         }
-
         return out.toOwnedSlice(alloc) catch @panic("OOM");
     }
 
-    pub fn update(self: *Board, m: Move, cr: CastlingRights) !void {
+    test toFEN {
+        const alloc = std.testing.allocator;
+        var board: @This() = .{};
+
+        // Place pieces to form the starting position
+        // White pieces
+        try board.placePiece(.WhiteRook, .A1);
+        try board.placePiece(.WhiteKnight, .B1);
+        try board.placePiece(.WhiteBishop, .C1);
+        try board.placePiece(.WhiteQueen, .D1);
+        try board.placePiece(.WhiteKing, .E1);
+        try board.placePiece(.WhiteBishop, .F1);
+        try board.placePiece(.WhiteKnight, .G1);
+        try board.placePiece(.WhiteRook, .H1);
+        for (0..8) |f| {
+            try board.placePiece(.WhitePawn, Square.fromFileAndRank(File.fromIndex(f), .@"2"));
+        }
+        // Black pieces
+        try board.placePiece(.BlackRook, .A8);
+        try board.placePiece(.BlackKnight, .B8);
+        try board.placePiece(.BlackBishop, .C8);
+        try board.placePiece(.BlackQueen, .D8);
+        try board.placePiece(.BlackKing, .E8);
+        try board.placePiece(.BlackBishop, .F8);
+        try board.placePiece(.BlackKnight, .G8);
+        try board.placePiece(.BlackRook, .H8);
+        for (0..8) |f| {
+            try board.placePiece(.BlackPawn, Square.fromFileAndRank(File.fromIndex(f), .@"7"));
+        }
+        const fen = board.toFEN(alloc);
+        defer alloc.free(fen);
+        const expected_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
+        try std.testing.expectEqualStrings(expected_fen, fen);
+    }
+
+    pub fn update(self: *@This(), m: Move, cr: CastlingRights) !void {
         const p1 = self.getPieceOnSquare(m.s1);
         if (p1 == Piece.None) {
             return BoardError.SquareEmpty;
@@ -350,8 +431,7 @@ pub const Board = packed struct {
                 .Black => {
                     self.blackRooks = (self.blackRooks & ~cr.blackKingSideRookSquare().getBitboard()) | Square.squareBit(Square.F8);
                 },
-                .None => {
-                }
+                .None => {}
             }
         } else if (m.hasTag(QueenSideCastle)) {
             switch (p1.colour()) {
@@ -361,128 +441,28 @@ pub const Board = packed struct {
                 .Black => {
                     self.blackRooks = (self.blackRooks & ~cr.blackQueenSideRookSquare().getBitboard()) | Square.squareBit(Square.D8);
                 },
-                .None => {
-                }
+                .None => {}
             }
         }
-
         self.calcConvenienceBBs();
     }
 };
 
-test "Board setBitboardBit" {
-    std.debug.print("Testing setBitboardBit...\n", .{});
-    var bb: bitboard = 0;
-    bb = Board.setBitboardBit(bb, Square.E4);
-    try std.testing.expectEqual(Square.E4.bitmask(), bb);
-    // std.debug.print("bb after setting bit {d}: {b}\n", .{Square.E4, bb});
-}
-
-test "Board clearBitboardBit" {
-    std.debug.print("Testing clearBitboardBit...\n", .{});
-    var bb: bitboard = 0xFFFFFFFFFFFFFFFF;
-    bb = Board.clearBitboardBit(bb, .E4);
-    try std.testing.expectEqual(~Square.E4.bitmask(), bb);
-    // std.debug.print("bb after clearing bit {d}: {b}\n", .{Square.E4, bb});
-}
-
 test "Board creation and piece placement" {
     std.debug.print("Create board and place pieces...\n", .{});
-    var board = Board{};
+    var board: Board = .{};
 
     // Place a white king on e4
-    // std.debug.print("squareE4: {d}\n", .{squareE4.s});
     try board.placePiece(.WhiteKing, .E4);
 
     // Check if the white king is placed correctly
     const expectedBB: bitboard = Square.E4.bitmask();
-    // std.debug.print("White King bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.whiteKing, expectedBB});
     try std.testing.expectEqual(expectedBB, board.whiteKing);
-    // std.debug.print("White squares bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.whiteSquares, expectedBB});
     try std.testing.expectEqual(expectedBB, board.whiteSquares);
-    const expectedEmptyQuares: bitboard = 0xFFFFFFFFFFFFFFFF & ~expectedBB;
-    // std.debug.print("Empty squares bitboard: {b:0>64}, expected bitboard: {b:0>64}\n", .{board.emptySquares, expectedEmptyQuares});
+    const expectedEmptyQuares: bitboard = 0xFFFF_FFFF_FFFF_FFFF & ~expectedBB;
     try std.testing.expectEqual(expectedEmptyQuares, board.emptySquares);
 }
 
-test "Board getKingSquare" {
-    std.debug.print("Testing Board getKingSquare...\n", .{});
-    var board = Board{};
-
-    // Place a white king on e1
-    const e1 = Square.fromFileAndRank(.E, .@"1");
-    try board.placePiece(.WhiteKing, e1);
-    // std.debug.print("White King bitboard: {b:0>64}\n", .{board.whiteKing});
-    const whiteKingSquare = board.getKingSquare(.White);
-    // std.debug.print("White King is on square: {s}\n", .{whiteKingSquare.toString()});
-    try std.testing.expectEqual(e1, whiteKingSquare);
-
-    // Place a black king on e8
-    const e8 = Square.fromFileAndRank(.E, .@"8");
-    try board.placePiece(.BlackKing, e8);
-    const blackKingSquare = board.getKingSquare(.Black);
-    try std.testing.expectEqual(e8, blackKingSquare);
-}
-
-test "Board draw" {
-    const alloc = std.testing.allocator;
-    std.debug.print("Testing Board draw...\n", .{});
-    var board = Board{};
-
-    // Place some pieces
-    try board.placePiece(.WhiteKing, .E4);
-    try board.placePiece(.BlackQueen, .D6);
-    try board.placePiece(.WhiteRook, .A1);
-
-    const expected = "  a b c d e f g h\n"
-        ++ "8                \n"
-        ++ "7                \n"
-        ++ "6       q        \n"
-        ++ "5                \n"
-        ++ "4         K      \n"
-        ++ "3                \n"
-        ++ "2                \n"
-        ++ "1 R              \n";
-    const board_str = board.draw(alloc);
-    defer alloc.free(board_str);
-    try std.testing.expectEqualStrings(expected, board_str);
-    // std.debug.print("{s}\n", .{board.draw()});
-}
-
-test "Board toFEN" {
-    const alloc = std.testing.allocator;
-    std.debug.print("Testing Board toFEN...\n", .{});
-    var board: Board = .{};
-
-    // Place pieces to form the starting position
-    // White pieces
-    try board.placePiece(.WhiteRook, .A1);
-    try board.placePiece(.WhiteKnight, .B1);
-    try board.placePiece(.WhiteBishop, .C1);
-    try board.placePiece(.WhiteQueen, .D1);
-    try board.placePiece(.WhiteKing, .E1);
-    try board.placePiece(.WhiteBishop, .F1);
-    try board.placePiece(.WhiteKnight, .G1);
-    try board.placePiece(.WhiteRook, .H1);
-    for (0..8) |f_| {
-        const f = @as(u8, @intCast(f_));
-        try board.placePiece(.WhitePawn, Square.fromFileAndRank(File.fromInt(f + 1), .@"2"));
-    }
-    // Black pieces
-    try board.placePiece(.BlackRook, .A8);
-    try board.placePiece(.BlackKnight, .B8);
-    try board.placePiece(.BlackBishop, .C8);
-    try board.placePiece(.BlackQueen, .D8);
-    try board.placePiece(.BlackKing, .E8);
-    try board.placePiece(.BlackBishop, .F8);
-    try board.placePiece(.BlackKnight, .G8);
-    try board.placePiece(.BlackRook, .H8);
-    for (0..8) |f_| {
-        const f = @as(u8, @intCast(f_));
-        try board.placePiece(.BlackPawn, Square.fromFileAndRank(File.fromInt(f + 1), .@"7"));
-    }
-    const fen = board.toFEN(alloc);
-    defer alloc.free(fen);
-    const expected_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-    try std.testing.expectEqualStrings(expected_fen, fen);
+test {
+    @import("std").testing.refAllDecls(@This());
 }
