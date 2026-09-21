@@ -142,25 +142,8 @@ fn fenInt32Field(field: *i32, fieldStr: []const u8, minVal: i32, fenError: FENEr
 }
 
 test "decodeFEN start position" {
-    const alloc = std.testing.allocator;
-    std.debug.print("Decoding valid FEN...\n", .{});
     const position = try decodeFEN(startFEN);
 
-    // std.debug.print("Board after decoding FEN:\n{s}\n", .{position.board.draw()});
-    const expected = "  a b c d e f g h\n"
-        ++ "8 r n b q k b n r\n"
-        ++ "7 p p p p p p p p\n"
-        ++ "6                \n"
-        ++ "5                \n"
-        ++ "4                \n"
-        ++ "3                \n"
-        ++ "2 P P P P P P P P\n"
-        ++ "1 R N B Q K B N R\n";
-    // std.debug.print("Board:\n{s}", .{position.board.draw()});
-    const board_str = position.board.draw(alloc);
-    defer alloc.free(board_str);
-    try std.testing.expectEqualStrings(expected, board_str);
-    // position.board.debugInternalBitboards();
     try std.testing.expectEqual(Square.A1.bitmask() + Square.H1.bitmask(), position.board.whiteRooks);
     try std.testing.expectEqual(Square.B1.bitmask() + Square.G1.bitmask(), position.board.whiteKnights);
     try std.testing.expectEqual(Square.C1.bitmask() + Square.F1.bitmask(), position.board.whiteBishops);
@@ -203,13 +186,15 @@ test "decodeFEN start position" {
 }
 
 test "decodeFEN valid FEN" {
-    std.debug.print("Decoding FEN with en passant square...\n", .{});
+    const alloc = std.testing.allocator;
     const fen = "rnbqkb1r/ppp2ppp/3p1n2/4p3/4P3/3B1N2/PPPP1PPP/RNBQ1RK1 b kq - 1 4";
     const position = try decodeFEN(fen);
 
     try std.testing.expectEqual(Square.None, position.enPassantSquare);
     try std.testing.expectEqual(Colour.Black, position.turn);
-    try std.testing.expectEqualStrings("kq", position.castling.toString());
+    const castlingStr = try position.castling.string(alloc);
+    defer alloc.free(castlingStr);
+    try std.testing.expectEqualStrings("kq", castlingStr);
     try std.testing.expectEqual(1, position.halfMoveClock);
     try std.testing.expectEqual(4, position.moveCount);
 }

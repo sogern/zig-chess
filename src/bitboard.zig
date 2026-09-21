@@ -56,37 +56,37 @@ fn debugBitboard(alloc: std.mem.Allocator, bb: bitboard, name: []const u8) void 
     std.debug.print("{s}: 0x{x:0>16}\n{s}\n", .{name, bb, debugStr});
 }
 
-test "Debug bitboard" {
-    const bbAntiDiagonals: [64]bitboard = @import("bitboard/antiDiagonals.zon");
+// test "Debug bitboard" {
+//     const bbAntiDiagonals: [64]bitboard = @import("bitboard/antiDiagonals.zon");
 
-    const alloc = std.testing.allocator;
-    const sqBB: bitboard = Square.B4.bitmask();
-    debugBitboard(alloc, sqBB, "sqBB");
-    const occupied: bitboard = 0x10004800000800;
-    debugBitboard(alloc, occupied, "occupied");
-    const mask = bbAntiDiagonals[Square.B4.index()];
-    debugBitboard(alloc, mask, "mask");
-    const oInMask = occupied & mask;
-    debugBitboard(alloc, oInMask, "oInMask");
-    const twoXsqBB = sqBB << 1; // Multiply by 2
-    debugBitboard(alloc, twoXsqBB, "twoXsqBB");
-    const oInMaskMinusTwoXsqBB = oInMask -% twoXsqBB;
-    debugBitboard(alloc, oInMaskMinusTwoXsqBB, "oInMaskMinusTwoXsqBB");
-    const oInMaskReversed = @bitReverse(oInMask);
-    debugBitboard(alloc, oInMaskReversed, "oInMaskReversed");
-    const sqBBReversed = @bitReverse(sqBB);
-    debugBitboard(alloc, sqBBReversed, "sqBBReversed");
-    const twoXsqBBReversed = sqBBReversed << 1; // Multiply by 2
-    debugBitboard(alloc, twoXsqBBReversed, "twoXsqBBReversed");
-    const oInMaskReversedMinusTwoXsqBBReversed = oInMaskReversed -% twoXsqBBReversed;
-    debugBitboard(alloc, oInMaskReversedMinusTwoXsqBBReversed, "oInMaskReversedMinusTwoXsqBBReversed");
-    const oInMaskReversedMinusTwoXsqBBReversedReversed = @bitReverse(oInMaskReversedMinusTwoXsqBBReversed);
-    debugBitboard(alloc, oInMaskReversedMinusTwoXsqBBReversedReversed, "oInMaskReversedMinusTwoXsqBBReversedReversed");
-    const xorResult = oInMaskMinusTwoXsqBB ^ oInMaskReversedMinusTwoXsqBBReversedReversed;
-    debugBitboard(alloc, xorResult, "xorResult");
-    const finalResult = xorResult & mask;
-    debugBitboard(alloc, finalResult, "finalResult");
+//     const alloc = std.testing.allocator;
+//     const sqBB: bitboard = Square.B4.bitmask();
+//     debugBitboard(alloc, sqBB, "sqBB");
+//     const occupied: bitboard = 0x10004800000800;
+//     debugBitboard(alloc, occupied, "occupied");
+//     const mask = bbAntiDiagonals[Square.B4.index()];
+//     debugBitboard(alloc, mask, "mask");
+//     const oInMask = occupied & mask;
+//     debugBitboard(alloc, oInMask, "oInMask");
+//     const twoXsqBB = sqBB << 1; // Multiply by 2
+//     debugBitboard(alloc, twoXsqBB, "twoXsqBB");
+//     const oInMaskMinusTwoXsqBB = oInMask -% twoXsqBB;
+//     debugBitboard(alloc, oInMaskMinusTwoXsqBB, "oInMaskMinusTwoXsqBB");
+//     const oInMaskReversed = @bitReverse(oInMask);
+//     debugBitboard(alloc, oInMaskReversed, "oInMaskReversed");
+//     const sqBBReversed = @bitReverse(sqBB);
+//     debugBitboard(alloc, sqBBReversed, "sqBBReversed");
+//     const twoXsqBBReversed = sqBBReversed << 1; // Multiply by 2
+//     debugBitboard(alloc, twoXsqBBReversed, "twoXsqBBReversed");
+//     const oInMaskReversedMinusTwoXsqBBReversed = oInMaskReversed -% twoXsqBBReversed;
+//     debugBitboard(alloc, oInMaskReversedMinusTwoXsqBBReversed, "oInMaskReversedMinusTwoXsqBBReversed");
+//     const oInMaskReversedMinusTwoXsqBBReversedReversed = @bitReverse(oInMaskReversedMinusTwoXsqBBReversed);
+//     debugBitboard(alloc, oInMaskReversedMinusTwoXsqBBReversedReversed, "oInMaskReversedMinusTwoXsqBBReversedReversed");
+//     const xorResult = oInMaskMinusTwoXsqBB ^ oInMaskReversedMinusTwoXsqBBReversedReversed;
+//     debugBitboard(alloc, xorResult, "xorResult");
+//     const finalResult = xorResult & mask;
+//     debugBitboard(alloc, finalResult, "finalResult");
 
-    const formula = ((oInMask -% 2 * sqBB) ^ @bitReverse(@bitReverse(oInMask) -% 2 * @bitReverse(sqBB))) & mask;
-    debugBitboard(alloc, formula, "formula");
-}
+//     const formula = ((oInMask -% 2 * sqBB) ^ @bitReverse(@bitReverse(oInMask) -% 2 * @bitReverse(sqBB))) & mask;
+//     debugBitboard(alloc, formula, "formula");
+// }

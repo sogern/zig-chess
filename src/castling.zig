@@ -42,7 +42,7 @@ pub fn fromString(str: []const u8, kingFile: File) !Self {
                 const index = @as(usize, c - 'A');
                 if (c > kingFile.char() - 32) {
                     r.rights[0] = Square.fromIndex(index);
-                } else if (c < kingFile.char()) {
+                } else if (c < kingFile.char() - 32) {
                     r.rights[1] = Square.fromIndex(index);
                 } else {
                     return CastlingError.InvalidCastlingRights;

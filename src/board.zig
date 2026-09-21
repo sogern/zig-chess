@@ -307,8 +307,9 @@ pub const Board = packed struct {
         return out.toOwnedSlice(alloc) catch @panic("OOM");
     }
 
-    /// toFEN returns the board in Forsyth-Edwards Notation.
-    pub fn toFEN(self: @This(), alloc: std.mem.Allocator) []const u8 {
+    /// Returns the board in Forsyth-Edwards Notation.
+    /// Caller owns the returned string.
+    pub fn fen(self: @This(), alloc: std.mem.Allocator) []const u8 {
         // 71 is the theoretical maximum length of the piece placement part of a FEN string
         var out = std.ArrayList(u8).initCapacity(alloc, 8 * 8 + 7) catch @panic("OOM");
         var emptyCount: u8 = 0;
@@ -348,7 +349,7 @@ pub const Board = packed struct {
         return out.toOwnedSlice(alloc) catch @panic("OOM");
     }
 
-    test toFEN {
+    test fen {
         const alloc = std.testing.allocator;
         var board: @This() = .{};
 
@@ -377,10 +378,10 @@ pub const Board = packed struct {
         for (0..8) |f| {
             try board.placePiece(.BlackPawn, Square.fromFileAndRank(File.fromIndex(f), .@"7"));
         }
-        const fen = board.toFEN(alloc);
-        defer alloc.free(fen);
+        const fenStr = board.fen(alloc);
+        defer alloc.free(fenStr);
         const expected_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR";
-        try std.testing.expectEqualStrings(expected_fen, fen);
+        try std.testing.expectEqualStrings(expected_fen, fenStr);
     }
 
     pub fn update(self: *@This(), m: Move, cr: CastlingRights) !void {
@@ -449,7 +450,6 @@ pub const Board = packed struct {
 };
 
 test "Board creation and piece placement" {
-    std.debug.print("Create board and place pieces...\n", .{});
     var board: Board = .{};
 
     // Place a white king on e4

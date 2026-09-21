@@ -5,10 +5,9 @@ const Colour = @import("piece.zig").Colour;
 const CastlingRights = @import("castling.zig");
 const Square = @import("square.zig").Square;
 const Move = @import("move.zig").Move;
-const MoveError = @import("move.zig").MoveError;
 
 pub const Position = struct {
-    board: Board = Board{},
+    board: Board = .{},
     castling: CastlingRights = .{},
     validMoves: []Move = undefined,
     /// The number of half moves since the last capture or pawn advance, used for the fifty-move rule.
@@ -22,20 +21,15 @@ pub const Position = struct {
     /// update returns a new Position resulting from the given move.
     /// The move is not validated, use Game.move() for validation.
     /// This function is optimized for move generation where validation is handled separately.
-    pub fn update(self: Position, move: Move) !Position {
+    pub fn update(self: @This(), move: Move) !Position {
         var moveCount = self.moveCount;
-        if (self.turn == Colour.Black) {
-            moveCount += 1;
-        }
-
-        if (move.s1 == .None or move.s2 == .None) {
-            return self;
-        }
+        if (self.turn == .Black) moveCount += 1;
+        if (move.s1 == .None or move.s2 == .None) return self;
 
         const castlingRights = try self.updateCastlingRights(move);
         const piece = self.board.getPieceOnSquare(move.s1);
-        const halfMoveClock = self.halfMoveClock;
-        if (piece.@"type"() == .Pawn or piece.hasTag(.Capture)) {
+        var halfMoveClock = self.halfMoveClock;
+        if (piece.@"type"() == .Pawn or move.hasTag(.Capture)) {
             // Reset half-move clock on pawn move or capture
             halfMoveClock = 0;
         } else {
@@ -56,7 +50,7 @@ pub const Position = struct {
         };
     }
 
-    fn updateCastlingRights(self: Position, move: Move) !CastlingRights {
+    fn updateCastlingRights(self: @This(), move: Move) !CastlingRights {
         const piece = self.board.getPieceOnSquare(move.s1);
         const pieceType = piece.@"type"();
         if (pieceType == .None
@@ -85,7 +79,7 @@ pub const Position = struct {
         };
     }
 
-    // fn updateEnPassantSquare(self: Position, move: Move) Square {
+    // fn updateEnPassantSquare(self: @This(), move: Move) Square {
     //     const piece = self.board.getPieceOnSquare(move.s1);
     //     if (piece.@"type"() != .Pawn) {
     //         return .None;
@@ -93,7 +87,7 @@ pub const Position = struct {
     //
     // }
 
-    pub fn getValidMoves(self: *const Position) []Move {
+    pub fn getValidMoves(self: *@This()) []Move {
         if (self.validMoves) {
             return self.validMoves;
         }
@@ -101,11 +95,11 @@ pub const Position = struct {
         return self.validMoves;
     }
 
-    pub fn hasValidMoves(self: *const Position) bool {
+    pub fn hasValidMoves(self: *@This()) bool {
         return self.validMoves and self.validMoves.len > 0;
     }
 
-    pub fn copy(self: *const Position) Position {
+    pub fn copy(self: *@This()) Position {
         return Position{
             .board = self.board,
             .castling = self.castling,
@@ -117,20 +111,23 @@ pub const Position = struct {
         };
     }
 
-    pub fn toString(self: *const Position) []const u8 {
-        const alloc = std.heap.page_allocator;
-        var out = std.ArrayList(u8).initCapacity(alloc, 256) catch unreachable;
-        var buf: [256]u8 = undefined;
-        out.appendSlice(alloc, std.fmt.bufPrint(&buf, "T: {c}, CR: {s}, HMC: {d}, MC: {d}, EP: {s}, Board:\n{s}\n",
-        .{
-            self.turn.toChar(),
-            self.castling.toString(),
-            self.halfMoveClock,
-            self.moveCount,
-            self.enPassantSquare.toString(),
-            self.board.draw()
-        }) catch unreachable) catch unreachable;
-        return out.items;
+    pub fn string(self: @This(), alloc: std.mem.Allocator) ![]const u8 {
+        const castlingStr = try self.castling.string(alloc);
+        defer alloc.free(castlingStr);
+        const boardStr = try self.board.draw(alloc);
+        defer alloc.free(boardStr);
+        return try std.fmt.allocPrint(
+            alloc,
+            "T: {c}, CR: {s}, HMC: {d}, MC: {d}, EP: {s}, Board:\n{s}\n",
+            .{
+                self.turn.char(),
+                castlingStr,
+                self.halfMoveClock,
+                self.moveCount,
+                self.enPassantSquare.string(),
+                boardStr,
+            },
+        );
     }
 };
 
@@ -143,4 +140,8 @@ test "Position initialization" {
     try std.testing.expectEqual(0xFFFF_FFFF_FFFF_FFFF, position.board.emptySquares);
     try std.testing.expectEqual(Square.None, position.enPassantSquare);
     try std.testing.expectEqual(Colour.White, position.turn);
+}
+
+test {
+    @import("std").testing.refAllDecls(@This());
 }
