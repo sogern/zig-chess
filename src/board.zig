@@ -31,6 +31,7 @@ pub const Board = packed struct {
     blackBishops: bitboard = 0,
     blackKnights: bitboard = 0,
     blackPawns: bitboard = 0,
+    // Convenience bitboards
     whiteSquares: bitboard = 0, // all white pieces
     blackSquares: bitboard = 0, // all black pieces
     emptySquares: bitboard = 0xFFFF_FFFF_FFFF_FFFF,

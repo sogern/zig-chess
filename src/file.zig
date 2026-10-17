@@ -16,9 +16,22 @@ pub const File = enum(u64) {
         return @enumFromInt(@intFromEnum(File.A) >> @intCast(i - 1));
     }
 
+    test fromInt {
+        try std.testing.expectEqual(File.A, File.fromInt(1));
+        try std.testing.expectEqual(File.H, File.fromInt(8));
+        try std.testing.expectEqual(File.None, File.fromInt(0));
+        try std.testing.expectEqual(File.None, File.fromInt(9));
+    }
+
     pub fn fromIndex(i: usize) @This() {
         if (i > 7) return .None;
         return @enumFromInt(@intFromEnum(File.A) >> @intCast(i));
+    }
+
+    test fromIndex {
+        try std.testing.expectEqual(File.A, File.fromIndex(0));
+        try std.testing.expectEqual(File.H, File.fromIndex(7));
+        try std.testing.expectEqual(File.None, File.fromIndex(8));
     }
 
     pub inline fn char(self: @This()) u8 {
@@ -26,9 +39,21 @@ pub const File = enum(u64) {
         return 'a' + @clz(@intFromEnum(self));
     }
 
+    test char {
+        try std.testing.expectEqual('a', File.A.char());
+        try std.testing.expectEqual('h', File.H.char());
+        try std.testing.expectEqual(0, File.None.char());
+    }
+
     pub inline fn int(self: @This()) u8 {
         if (self == .None) return 0;
         return 1 + @clz(@intFromEnum(self));
+    }
+
+    test int {
+        try std.testing.expectEqual(1, File.A.int());
+        try std.testing.expectEqual(8, File.H.int());
+        try std.testing.expectEqual(0, File.None.int());
     }
 
     pub inline fn index(self: @This()) usize {
@@ -36,38 +61,17 @@ pub const File = enum(u64) {
         return @clz(@intFromEnum(self));
     }
 
+    test index {
+        try std.testing.expectEqual(0, File.A.index());
+        try std.testing.expectEqual(7, File.H.index());
+        try std.testing.expectEqual(8, File.None.index());
+    }
+
     pub inline fn bitmask(self: @This()) u64 {
         return @intFromEnum(self);
     }
 };
 
-test "char" {
-    try std.testing.expectEqual('a', File.A.char());
-    try std.testing.expectEqual('h', File.H.char());
-    try std.testing.expectEqual(0, File.None.char());
-}
-
-test "int" {
-    try std.testing.expectEqual(1, File.A.int());
-    try std.testing.expectEqual(8, File.H.int());
-    try std.testing.expectEqual(0, File.None.int());
-}
-
-test "index" {
-    try std.testing.expectEqual(0, File.A.index());
-    try std.testing.expectEqual(7, File.H.index());
-    try std.testing.expectEqual(8, File.None.index());
-}
-
-test "fromInt" {
-    try std.testing.expectEqual(File.A, File.fromInt(1));
-    try std.testing.expectEqual(File.H, File.fromInt(8));
-    try std.testing.expectEqual(File.None, File.fromInt(0));
-    try std.testing.expectEqual(File.None, File.fromInt(9));
-}
-
-test "fromIndex" {
-    try std.testing.expectEqual(File.A, File.fromIndex(0));
-    try std.testing.expectEqual(File.H, File.fromIndex(7));
-    try std.testing.expectEqual(File.None, File.fromIndex(8));
+test {
+    @import("std").testing.refAllDecls(@This());
 }

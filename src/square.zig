@@ -88,10 +88,10 @@ pub const Square = enum(u64) {
     }
 
     test fromFileAndRank {
-        try std.testing.expectEqual(Square.A1, Square.fromFileAndRank(File.A, Rank.@"1"));
-        try std.testing.expectEqual(Square.E4, Square.fromFileAndRank(File.E, Rank.@"4"));
-        try std.testing.expectEqual(Square.H8, Square.fromFileAndRank(File.H, Rank.@"8"));
-        try std.testing.expectEqual(Square.None, Square.fromFileAndRank(File.None, Rank.@"8"));
+        try std.testing.expectEqual(Square.A1, Square.fromFileAndRank(.A, .@"1"));
+        try std.testing.expectEqual(Square.E4, Square.fromFileAndRank(.E, .@"4"));
+        try std.testing.expectEqual(Square.H8, Square.fromFileAndRank(.H, .@"8"));
+        try std.testing.expectEqual(Square.None, Square.fromFileAndRank(.None, .@"8"));
     }
 
     pub fn fromString(s: []const u8) @This() {
@@ -145,7 +145,7 @@ pub const Square = enum(u64) {
         return @clz(@intFromEnum(self));
     }
 
-    pub fn order(self: @This(), other: @This()) std.math.Order {
+    fn order(self: @This(), other: @This()) std.math.Order {
         const selfIndex = self.index();
         const otherIndex = other.index();
         if (selfIndex < otherIndex) return .lt;
@@ -174,11 +174,11 @@ pub const Square = enum(u64) {
     }
 
     test "comparison" {
-        try std.testing.expect(Square.A1.lt(Square.B1));
-        try std.testing.expect(Square.A1.lt(Square.A2));
-        try std.testing.expect(Square.H8.gt(Square.G8));
-        try std.testing.expect(Square.H8.gt(Square.H7));
-        try std.testing.expect(Square.None.gt(Square.H8));
+        try std.testing.expect(Square.A1.lt(.B1));
+        try std.testing.expect(Square.A1.lt(.A2));
+        try std.testing.expect(Square.H8.gt(.G8));
+        try std.testing.expect(Square.H8.gt(.H7));
+        try std.testing.expect(Square.None.gt(.H8));
     }
 };
 
