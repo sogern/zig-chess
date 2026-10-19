@@ -1,6 +1,7 @@
 const std = @import("std");
 
 pub const bb = @import("bitboard.zig");
+pub const fen = @import("fen.zig");
 pub const file = @import("file.zig");
 pub const piece = @import("piece.zig");
 pub const square = @import("square.zig");

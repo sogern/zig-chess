@@ -16,13 +16,14 @@ pub const startFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 pub const FENError = error{
     InvalidFEN,
     InvalidBoard,
-    InvalidCastlingRightsForGivenBoard,
+    InvalidCastlingRights,
     InvalidEnPassantSquare,
     InvalidHalfMoveClock,
     InvalidMoveCount,
+    InvalidPiece,
 };
 
-pub fn decodeFEN(fen: []const u8) !Position {
+pub fn decodeFEN(fen: []const u8) FENError!Position {
     // Split the FEN string into parts
     var it = std.mem.splitScalar(u8, fen, ' ');
 
@@ -63,7 +64,7 @@ pub fn decodeFEN(fen: []const u8) !Position {
     return position;
 }
 
-fn fenBoard(board: *Board, boardStr: []const u8) !void {
+fn fenBoard(board: *Board, boardStr: []const u8) FENError!void {
     // std.debug.print("boardStr={s}\n", .{boardStr});
     var rankCount: usize = 0;
     var start: usize = 0;
@@ -100,9 +101,11 @@ fn fenBoard(board: *Board, boardStr: []const u8) !void {
                 const rank = 7 - rankIndex; // FEN starts with rank 8
                 const piece = Piece.fromChar(c);
                 if (piece == Piece.None) {
-                    return PieceError.InvalidPiece;
+                    return FENError.InvalidPiece;
                 }
-                try board.placePiece(piece, Square.fromIndex(rank * 8 + fileIndex));
+                board.placePiece(piece, Square.fromIndex(rank * 8 + fileIndex)) catch {
+                    return FENError.InvalidBoard;
+                };
                 // std.debug.print("Placed piece {c} at rank {d}, file {d}\n", .{piece.toChar(), rank, fileIndex});
                 fileIndex += 1;
             }
@@ -111,20 +114,19 @@ fn fenBoard(board: *Board, boardStr: []const u8) !void {
 }
 
 fn fenCastlingRights(_: Board, castling: *CastlingRights, castlingStr: []const u8) !void {
-    castling.* = try CastlingRights.fromString(castlingStr, File.E);
+    castling.* = CastlingRights.fromString(castlingStr, File.E) catch {
+        return FENError.InvalidCastlingRights;
+    };
 }
 
-fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void {
+fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) FENError!void {
     if (enPassantStr.len == 0 or enPassantStr[0] == '-') {
         enPassantSquare.* = Square.None;
         return;
     }
 
     const s = Square.fromString(enPassantStr);
-    if (s == .None) {
-        return FENError.InvalidFEN;
-    }
-    if (s.rank() != .@"3" and s.rank() != .@"6") {
+    if (s == .None or (s.rank() != .@"3" and s.rank() != .@"6")) {
         return FENError.InvalidEnPassantSquare;
     }
 
@@ -132,8 +134,8 @@ fn fenEnPassantSquare(enPassantSquare: *Square, enPassantStr: []const u8) !void 
 }
 
 fn fenInt32Field(field: *i32, fieldStr: []const u8, minVal: i32, fenError: FENError) !void {
-    const value = std.fmt.parseInt(i32, fieldStr, 10) catch |err| {
-        return err;
+    const value = std.fmt.parseInt(i32, fieldStr, 10) catch {
+        return FENError.InvalidFEN;
     };
     if (value < minVal) {
         return fenError;

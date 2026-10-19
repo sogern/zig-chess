@@ -145,6 +145,7 @@ pub const Board = packed struct {
         return Piece.None;
     }
 
+    // TODO: rename to "place"
     pub fn placePiece(self: *@This(), p: Piece, square: Square) !void {
         if (self.isSquareOccupied(square)) {
             return BoardError.SquareOccupied;
